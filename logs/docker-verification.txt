@@ -1,0 +1,41 @@
+## Docker version
+Docker version 29.3.1, build c2be9cc
+
+## Running containers
+CONTAINER ID   IMAGE                 COMMAND                  CREATED          STATUS                    PORTS                                     NAMES
+c185e18e59cc   ubuntu                "sleep infinity"         23 seconds ago   Up 22 seconds                                                       ia-volume-test-2
+98f32c1f6ccf   nginx:alpine          "/docker-entrypoint.…"   6 minutes ago    Up 6 minutes              0.0.0.0:8082->80/tcp, [::]:8082->80/tcp   ia-codyssey-bind
+39b06e3ea60d   ia-codyssey-web:1.0   "/docker-entrypoint.…"   30 minutes ago   Up 30 minutes (healthy)   0.0.0.0:8081->80/tcp, [::]:8081->80/tcp   ia-codyssey-web-8081
+57aa611a0dd3   ia-codyssey-web:1.0   "/docker-entrypoint.…"   38 minutes ago   Up 38 minutes (healthy)   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   ia-codyssey-web-8080
+52cc10dc01e3   ubuntu                "bash"                   48 minutes ago   Up 44 minutes                                                       ubuntu-practice
+
+## All mission containers
+CONTAINER ID   IMAGE                 COMMAND                  CREATED          STATUS                    PORTS                                     NAMES
+c185e18e59cc   ubuntu                "sleep infinity"         23 seconds ago   Up 22 seconds                                                       ia-volume-test-2
+98f32c1f6ccf   nginx:alpine          "/docker-entrypoint.…"   6 minutes ago    Up 6 minutes              0.0.0.0:8082->80/tcp, [::]:8082->80/tcp   ia-codyssey-bind
+39b06e3ea60d   ia-codyssey-web:1.0   "/docker-entrypoint.…"   30 minutes ago   Up 30 minutes (healthy)   0.0.0.0:8081->80/tcp, [::]:8081->80/tcp   ia-codyssey-web-8081
+57aa611a0dd3   ia-codyssey-web:1.0   "/docker-entrypoint.…"   38 minutes ago   Up 38 minutes (healthy)   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   ia-codyssey-web-8080
+
+## Custom image
+IMAGE                 ID             DISK USAGE   CONTENT SIZE   EXTRA
+ia-codyssey-web:1.0   a1dc1f0c3d6f         92MB           26MB   U
+
+## Web logs
+::1 - - [30/Jul/2026:02:16:08 +0000] "GET / HTTP/1.1" 200 692 "-" "Wget" "-"
+::1 - - [30/Jul/2026:02:16:38 +0000] "GET / HTTP/1.1" 200 692 "-" "Wget" "-"
+::1 - - [30/Jul/2026:02:17:08 +0000] "GET / HTTP/1.1" 200 692 "-" "Wget" "-"
+::1 - - [30/Jul/2026:02:17:38 +0000] "GET / HTTP/1.1" 200 692 "-" "Wget" "-"
+::1 - - [30/Jul/2026:02:18:08 +0000] "GET / HTTP/1.1" 200 692 "-" "Wget" "-"
+::1 - - [30/Jul/2026:02:18:39 +0000] "GET / HTTP/1.1" 200 692 "-" "Wget" "-"
+::1 - - [30/Jul/2026:02:19:09 +0000] "GET / HTTP/1.1" 200 692 "-" "Wget" "-"
+::1 - - [30/Jul/2026:02:19:39 +0000] "GET / HTTP/1.1" 200 692 "-" "Wget" "-"
+::1 - - [30/Jul/2026:02:20:09 +0000] "GET / HTTP/1.1" 200 692 "-" "Wget" "-"
+::1 - - [30/Jul/2026:02:20:39 +0000] "GET / HTTP/1.1" 200 692 "-" "Wget" "-"
+
+## Docker stats
+CONTAINER ID   NAME                   CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O     PIDS
+57aa611a0dd3   ia-codyssey-web-8080   0.00%     7.73MiB / 7.653GiB    0.10%     4.85kB / 5.19kB   0B / 12.3kB   9
+39b06e3ea60d   ia-codyssey-web-8081   0.00%     7.676MiB / 7.653GiB   0.10%     4.19kB / 3.84kB   0B / 12.3kB   9
+
+## Volumes
+local     ia-codyssey-data

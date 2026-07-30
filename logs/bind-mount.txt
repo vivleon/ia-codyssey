@@ -1,0 +1,55 @@
+$ docker run -d --name ia-codyssey-bind -p 8082:80 -v "$(pwd)/bind-app:/usr/share/nginx/html:ro" nginx:alpine
+CONTAINER ID   IMAGE          COMMAND                  CREATED         STATUS         PORTS                                     NAMES
+22f8e221cde5   nginx:alpine   "/docker-entrypoint.…"   4 seconds ago   Up 4 seconds   0.0.0.0:8082->80/tcp, [::]:8082->80/tcp   ia-codyssey-bind
+
+$ curl http://localhost:8082
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100   210  100   210    0     0  72214      0 --:--:-- --:--:-- --:--:--  102k
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Bind Mount Test</title>
+</head>
+<body>
+  <h1>Bind Mount Test - BEFORE</h1>
+  <p>This file is mounted from the host.</p>
+</body>
+</html>
+
+$ cat bind-app/index.html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Bind Mount Test</title>
+</head>
+<body>
+  <h1>Bind Mount Test - AFTER</h1>
+  <p>The host file change was reflected without rebuilding the image.</p>
+</body>
+</html>
+
+$ curl http://localhost:8082
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100   238  100   238    0     0  59203      0 --:--:-- --:--:-- --:--:-- 59500
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Bind Mount Test</title>
+</head>
+<body>
+  <h1>Bind Mount Test - AFTER</h1>
+  <p>The host file change was reflected without rebuilding the image.</p>
+</body>
+</html>
+
+$ docker inspect ia-codyssey-bind mount information
+Type=bind Source=/Users/hyeonjunna/codyssey/ia-codyssey/bind-app Destination=/usr/share/nginx/html

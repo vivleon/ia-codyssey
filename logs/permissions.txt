@@ -1,0 +1,16 @@
++ stat -f '%Sp %OLp %N' app/index.html
+-rw-r--r-- 644 app/index.html
++ chmod 600 app/index.html
++ stat -f '%Sp %OLp %N' app/index.html
+-rw------- 600 app/index.html
++ chmod 644 app/index.html
++ stat -f '%Sp %OLp %N' app/index.html
+-rw-r--r-- 644 app/index.html
++ stat -f '%Sp %OLp %N' practice
+drwxr-xr-x 755 practice
++ chmod 700 practice
++ stat -f '%Sp %OLp %N' practice
+drwx------ 700 practice
++ chmod 755 practice
++ stat -f '%Sp %OLp %N' practice
+drwxr-xr-x 755 practice

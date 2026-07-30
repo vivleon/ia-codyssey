@@ -1,0 +1,22 @@
+$ docker volume create ia-codyssey-data
+ia-codyssey-data
+
+$ docker run -d --name ia-volume-test-1 -v ia-codyssey-data:/data ubuntu sleep infinity
+49bb7abab1321cb6f9be9dd9c99c94a6b6ea89a9445b19c7cdff96cbdbe10966
+
+$ docker exec ia-volume-test-1 write data
+
+$ docker exec ia-volume-test-1 cat /data/result.txt
+Persistent data created by container 1
+
+$ docker rm -f ia-volume-test-1
+ia-volume-test-1
+
+$ docker run -d --name ia-volume-test-2 -v ia-codyssey-data:/data ubuntu sleep infinity
+03f0ceefde083fa8ef73f0139a8bb1f7ba3a18c75c83773e5680ff176b45b56c
+
+$ docker exec ia-volume-test-2 cat /data/result.txt
+Persistent data created by container 1
+
+$ docker inspect ia-volume-test-2 mount information
+Type=volume Name=ia-codyssey-data Destination=/data

@@ -1,0 +1,22 @@
+$ sw_vers
+ProductName:		macOS
+ProductVersion:		26.5.2
+BuildVersion:		25F84
+
+$ uname -m
+arm64
+
+$ echo $SHELL
+/bin/zsh
+
+$ echo $TERM_PROGRAM
+Apple_Terminal
+
+$ docker --version
+Docker version 29.3.1, build c2be9cc
+
+$ docker info --format
+ServerVersion=29.3.1 OperatingSystem=Docker Desktop Architecture=aarch64 CPUs=8
+
+$ git --version
+git version 2.52.0

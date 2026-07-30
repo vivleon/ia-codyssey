@@ -1,0 +1,59 @@
+$ docker run -d --name ia-ubuntu-running ubuntu sleep infinity
+938d5fc14db5554948fd01f28c7ac35ee199cbfe6fb9e26f9adf1b077c8e942e
+
+$ docker ps --filter name=ia-ubuntu-running
+CONTAINER ID   IMAGE     COMMAND            CREATED                  STATUS                  PORTS     NAMES
+938d5fc14db5   ubuntu    "sleep infinity"   Less than a second ago   Up Less than a second             ia-ubuntu-running
+
+$ docker exec ia-ubuntu-running pwd
+/
+
+$ docker exec ia-ubuntu-running ls -la /
+total 60
+drwxr-xr-x   1 root root 4096 Jul 30 02:25 .
+drwxr-xr-x   1 root root 4096 Jul 30 02:25 ..
+-rwxr-xr-x   1 root root    0 Jul 30 02:25 .dockerenv
+drwxr-xr-x   2 root root 4096 Jul 13 16:25 .rock
+lrwxrwxrwx   1 root root    7 Apr 20 08:46 bin -> usr/bin
+drwxr-xr-x   2 root root 4096 Apr 20 08:46 boot
+drwxr-xr-x   5 root root  340 Jul 30 02:25 dev
+drwxr-xr-x   1 root root 4096 Jul 30 02:25 etc
+drwxr-xr-x   3 root root 4096 Jul 13 16:25 home
+lrwxrwxrwx   1 root root    7 Apr 20 08:46 lib -> usr/lib
+drwxr-xr-x   2 root root 4096 Jul 13 16:23 media
+drwxr-xr-x   2 root root 4096 Jul 13 16:23 mnt
+drwxr-xr-x   2 root root 4096 Jul 13 16:23 opt
+dr-xr-xr-x 250 root root    0 Jul 30 02:25 proc
+drwx------   2 root root 4096 Jul 13 16:25 root
+drwxr-xr-x   4 root root 4096 Jul 13 16:25 run
+lrwxrwxrwx   1 root root    8 Apr 20 08:46 sbin -> usr/sbin
+drwxr-xr-x   2 root root 4096 Jul 13 16:23 srv
+dr-xr-xr-x  11 root root    0 Jul 30 01:35 sys
+drwxrwxrwt   2 root root 4096 Jul 13 16:24 tmp
+drwxr-xr-x  11 root root 4096 Jul 13 16:22 usr
+drwxr-xr-x  11 root root 4096 Jul 13 16:25 var
+
+$ docker exec ia-ubuntu-running echo
+Hello from Ubuntu container
+
+$ docker exec ia-ubuntu-running cat /etc/os-release
+PRETTY_NAME="Ubuntu 26.04 LTS"
+NAME="Ubuntu"
+VERSION_ID="26.04"
+VERSION="26.04 LTS (Resolute Raccoon)"
+VERSION_CODENAME=resolute
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=resolute
+LOGO=ubuntu-logo
+
+$ docker exec ia-ubuntu-running whoami
+root
+
+$ docker ps --filter name=ia-ubuntu-running
+CONTAINER ID   IMAGE     COMMAND            CREATED        STATUS                  PORTS     NAMES
+938d5fc14db5   ubuntu    "sleep infinity"   1 second ago   Up Less than a second             ia-ubuntu-running

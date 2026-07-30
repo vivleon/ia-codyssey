@@ -1,0 +1,15 @@
+$ git config --global user.name
+vivleon
+
+$ git config --global user.email
+[MASKED]
+
+$ git config --global init.defaultBranch
+main
+
+$ git branch --show-current
+main
+
+$ git remote -v
+origin	https://github.com/vivleon/ia-codyssey.git (fetch)
+origin	https://github.com/vivleon/ia-codyssey.git (push)

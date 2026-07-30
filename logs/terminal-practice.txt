@@ -1,0 +1,53 @@
++ pwd
+/Users/hyeonjunna/codyssey/ia-codyssey
++ ls -la
+total 24
+drwxr-xr-x@ 12 hyeonjunna  staff  384 Jul 30 11:14 .
+drwxr-xr-x@  3 hyeonjunna  staff   96 Jul 30 10:04 ..
+drwxr-xr-x@ 12 hyeonjunna  staff  384 Jul 30 10:50 .git
+-rw-r--r--@  1 hyeonjunna  staff   67 Jul 30 10:41 .gitignore
+drwxr-xr-x@  3 hyeonjunna  staff   96 Jul 30 10:04 app
+drwxr-xr-x@  3 hyeonjunna  staff   96 Jul 30 11:14 bind-app
+-rw-r--r--@  1 hyeonjunna  staff  440 Jul 30 10:41 Dockerfile
+drwxr-xr-x@  2 hyeonjunna  staff   64 Jul 30 10:04 docs
+drwxr-xr-x@  4 hyeonjunna  staff  128 Jul 30 11:24 logs
+drwxr-xr-x@  3 hyeonjunna  staff   96 Jul 30 11:24 practice
+-rw-r--r--@  1 hyeonjunna  staff   13 Jul 30 10:04 README.md
+drwxr-xr-x@  6 hyeonjunna  staff  192 Jul 30 11:16 screenshots
++ mkdir -p practice/cli-demo
++ cd practice/cli-demo
++ pwd
+/Users/hyeonjunna/codyssey/ia-codyssey/practice/cli-demo
++ touch empty-file.txt
++ echo 'Terminal CLI practice'
++ cat original.txt
+Terminal CLI practice
++ cp original.txt copied.txt
++ ls -la
+total 16
+drwxr-xr-x@ 5 hyeonjunna  staff  160 Jul 30 11:24 .
+drwxr-xr-x@ 3 hyeonjunna  staff   96 Jul 30 11:24 ..
+-rw-r--r--@ 1 hyeonjunna  staff   22 Jul 30 11:24 copied.txt
+-rw-r--r--@ 1 hyeonjunna  staff    0 Jul 30 11:24 empty-file.txt
+-rw-r--r--@ 1 hyeonjunna  staff   22 Jul 30 11:24 original.txt
++ mv copied.txt renamed.txt
++ ls -la
+total 16
+drwxr-xr-x@ 5 hyeonjunna  staff  160 Jul 30 11:24 .
+drwxr-xr-x@ 3 hyeonjunna  staff   96 Jul 30 11:24 ..
+-rw-r--r--@ 1 hyeonjunna  staff    0 Jul 30 11:24 empty-file.txt
+-rw-r--r--@ 1 hyeonjunna  staff   22 Jul 30 11:24 original.txt
+-rw-r--r--@ 1 hyeonjunna  staff   22 Jul 30 11:24 renamed.txt
++ rm renamed.txt
++ ls -la
+total 8
+drwxr-xr-x@ 4 hyeonjunna  staff  128 Jul 30 11:24 .
+drwxr-xr-x@ 3 hyeonjunna  staff   96 Jul 30 11:24 ..
+-rw-r--r--@ 1 hyeonjunna  staff    0 Jul 30 11:24 empty-file.txt
+-rw-r--r--@ 1 hyeonjunna  staff   22 Jul 30 11:24 original.txt
++ cd ../..
++ find practice -maxdepth 2 -print
+practice
+practice/cli-demo
+practice/cli-demo/original.txt
+practice/cli-demo/empty-file.txt
