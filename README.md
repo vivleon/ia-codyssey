@@ -146,7 +146,8 @@ ia-codyssey/
 │   ├── port-mapping-8080-address-bar.png
 │   ├── port-mapping-8080.png
 │   ├── port-mapping-8081-address-bar.png
-│   └── port-mapping-8081.png
+│   ├── port-mapping-8081.png
+│   └── vscode-github-clean.png
 ├── scripts/
 │   ├── verify-image-tag-reference.sh
 │   ├── verify-port-conflict.sh
@@ -868,6 +869,10 @@ GitHub는 Git 저장소를 원격으로 보관하고 협업, 코드 리뷰, 이�
 
 2026년 8월 12일 VSCode에서 이 저장소를 열고 Source Control이 `main` 브랜치와 현재 작업 폴더를 인식하는지 확인했습니다. Accounts 메뉴에서 `vivleon (GitHub)` 로그인도 확인했습니다. 계정 메뉴에는 다른 개인 계정도 함께 표시되므로 해당 화면은 공개 저장소에 넣지 않고, 민감정보가 없는 최종 clean 상태만 별도 캡처합니다.
 
+![VSCode main branch and clean Source Control](screenshots/vscode-github-clean.png)
+
+위 화면은 VSCode Source Control의 `ia-codyssey`, `main`, 빈 `CHANGES`, 비활성화된 Commit 버튼과 최신 원격 반영 커밋을 보여 줍니다. 로그인 계정명 자체는 공개 캡처에서 제외하고, 실제 푸시 권한은 아래 `git push` 성공 로그로 검증합니다.
+
 공개 HTTPS 저장소에 대한 `git remote -v`나 `git ls-remote` 성공은 원격 주소와 읽기 접근만 증명할 뿐 푸시 권한을 증명하지 않습니다. 실제 `git push origin main` 출력으로 `2e681fd..69eda95 main -> main`을 확인했고, 이어서 로컬 `HEAD`, `origin/main`, live `ls-remote`가 모두 `69eda9502bbaae05e0632e02d1bbaedb2ffb156b`로 일치함을 기록했습니다. 이 푸시 증거 파일 자체를 추가한 후속 문서 커밋도 `origin/main`에 반영합니다.
 
 - [원격 푸시·커밋 일치 원본 로그](logs/git-push.txt)
@@ -1206,6 +1211,7 @@ Git은 로컬 버전 관리 도구이며, GitHub는 Git 저장소의 원격 보�
 | 8080·8081 페이지 전용 보조 화면 | [8080](screenshots/port-mapping-8080.png), [8081](screenshots/port-mapping-8081.png) |
 | 바인드 마운트 변경 전 | [bind-mount-before.png](screenshots/bind-mount-before.png) |
 | 바인드 마운트 변경 후 | [bind-mount-after.png](screenshots/bind-mount-after.png) |
+| VSCode `main`·clean Source Control | [vscode-github-clean.png](screenshots/vscode-github-clean.png) |
 
 ---
 
