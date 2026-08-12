@@ -123,6 +123,7 @@ ia-codyssey/
 │   ├── docker-operations.txt
 │   ├── docker-verification.txt
 │   ├── environment.txt
+│   ├── git-push.txt
 │   ├── git-verification.txt
 │   ├── hello-world.txt
 │   ├── image-build-run.txt
@@ -845,6 +846,7 @@ origin  https://github.com/vivleon/ia-codyssey.git
 Git 설정 및 원격 저장소 확인 결과:
 
 - [Git 검증 로그](logs/git-verification.txt)
+- [실제 `origin/main` 푸시·원격 커밋 일치 로그](logs/git-push.txt)
 
 브랜치와 작업 트리 상태는 다음 명령으로 별도 확인합니다.
 
@@ -866,7 +868,9 @@ GitHub는 Git 저장소를 원격으로 보관하고 협업, 코드 리뷰, 이�
 
 2026년 8월 12일 VSCode에서 이 저장소를 열고 Source Control이 `main` 브랜치와 현재 작업 폴더를 인식하는지 확인했습니다. Accounts 메뉴에서 `vivleon (GitHub)` 로그인도 확인했습니다. 계정 메뉴에는 다른 개인 계정도 함께 표시되므로 해당 화면은 공개 저장소에 넣지 않고, 민감정보가 없는 최종 clean 상태만 별도 캡처합니다.
 
-공개 HTTPS 저장소에 대한 `git remote -v`나 `git ls-remote` 성공은 원격 주소와 읽기 접근만 증명할 뿐 푸시 권한을 증명하지 않습니다. 따라서 아래 원격 푸시 원본 로그와 최종 커밋이 표시된 GitHub 원격 화면을 직접 증거로 사용합니다.
+공개 HTTPS 저장소에 대한 `git remote -v`나 `git ls-remote` 성공은 원격 주소와 읽기 접근만 증명할 뿐 푸시 권한을 증명하지 않습니다. 실제 `git push origin main` 출력으로 `2e681fd..69eda95 main -> main`을 확인했고, 이어서 로컬 `HEAD`, `origin/main`, live `ls-remote`가 모두 `69eda9502bbaae05e0632e02d1bbaedb2ffb156b`로 일치함을 기록했습니다. 이 푸시 증거 파일 자체를 추가한 후속 문서 커밋도 `origin/main`에 반영합니다.
+
+- [원격 푸시·커밋 일치 원본 로그](logs/git-push.txt)
 
 ---
 
@@ -1196,6 +1200,7 @@ Git은 로컬 버전 관리 도구이며, GitHub는 Git 저장소의 원격 보�
 | 볼륨 백업·원본 삭제·새 볼륨 복원 | [volume-backup-restore.txt](logs/volume-backup-restore.txt) |
 | 동일 이름 볼륨 재사용·stale data 위험 | [volume-name-reuse.txt](logs/volume-name-reuse.txt) |
 | Git 설정 | [git-verification.txt](logs/git-verification.txt) |
+| 실제 GitHub `main` 푸시·원격 커밋 일치 | [git-push.txt](logs/git-push.txt) |
 | 8080 주소창·접속 화면 | [port-mapping-8080-address-bar.png](screenshots/port-mapping-8080-address-bar.png) |
 | 8081 주소창·접속 화면 | [port-mapping-8081-address-bar.png](screenshots/port-mapping-8081-address-bar.png) |
 | 8080·8081 페이지 전용 보조 화면 | [8080](screenshots/port-mapping-8080.png), [8081](screenshots/port-mapping-8081.png) |

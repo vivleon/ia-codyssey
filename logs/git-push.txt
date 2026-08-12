@@ -1,0 +1,30 @@
+# Remote push evidence recorded on 2026-08-12.
+# No credential, token, email address, or private repository data is included.
+
+$ git status --short --branch
+## main...origin/main [ahead 1]
+
+$ git push origin main
+To https://github.com/vivleon/ia-codyssey.git
+   2e681fd..69eda95  main -> main
+
+$ git status --short --branch
+## main...origin/main
+
+$ git rev-parse HEAD
+69eda9502bbaae05e0632e02d1bbaedb2ffb156b
+
+$ git rev-parse origin/main
+69eda9502bbaae05e0632e02d1bbaedb2ffb156b
+
+$ git ls-remote origin refs/heads/main
+69eda9502bbaae05e0632e02d1bbaedb2ffb156b	refs/heads/main
+
+$ date -u '+%Y-%m-%dT%H:%M:%SZ'
+2026-08-12T08:09:52Z
+
+$ date '+%Y-%m-%dT%H:%M:%S%z %Z'
+2026-08-12T17:09:52+0900 KST
+
+# Result: commit 69eda95 was pushed to origin/main and local HEAD,
+# origin/main, and the live remote branch all resolved to the same commit.
