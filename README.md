@@ -103,7 +103,7 @@ Docker 클라이언트는 macOS에서 실행되며, 실제 컨테이너는 Docke
 - [x] Git 사용자 정보 설정
 - [x] Git 기본 브랜치 설정
 - [x] GitHub 원격 저장소 연결
-- [ ] VSCode Source Control과 GitHub 로그인의 최종 clean 상태 증거
+- [x] VSCode Source Control clean 상태 및 GitHub 로그인·실제 push 검증
 - [x] 민감정보 노출 여부 확인
 - [x] 빌드→HTTP 200→health→바인드→볼륨 자동 검증
 
