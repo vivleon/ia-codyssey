@@ -1,0 +1,12 @@
+# Reproduction of Docker CLI absence inside the pinned Ubuntu container
+# Verified at 2026-08-12T09:28:57Z.
+
+$ docker ps -a --filter name=ia-troubleshoot-no-docker-20260812 --format '{{.Names}}'
+(no output; name was unused)
+
+$ docker run --rm --name ia-troubleshoot-no-docker-20260812 ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb /bin/sh -c 'docker --version'
+/bin/sh: 1: docker: not found
+exit_code=127
+
+$ docker ps -a --filter name=ia-troubleshoot-no-docker-20260812 --format '{{.Names}}'
+(no output; --rm removed the stopped verification container)

@@ -302,6 +302,10 @@ run docker container inspect "${WRITER_CONTAINER}" --format '{{json .Mounts}}'
 log 'writing the source payload and reading it back'
 run docker container exec "${WRITER_CONTAINER}" /bin/sh -ceu \
   'printf "%s\n" "$1" > /source/evidence.txt' volume-writer "${PAYLOAD}"
+run docker container exec "${WRITER_CONTAINER}" \
+  chown 1234:2345 /source/evidence.txt
+run docker container exec "${WRITER_CONTAINER}" \
+  chmod 0640 /source/evidence.txt
 capture docker container exec "${WRITER_CONTAINER}" cat /source/evidence.txt
 SOURCE_CONTENT="${CAPTURED_OUTPUT}"
 [[ "${SOURCE_CONTENT}" == "${PAYLOAD}" ]] \
@@ -312,7 +316,10 @@ SOURCE_SHA_LINE="${CAPTURED_OUTPUT}"
 SOURCE_SHA="${SOURCE_SHA_LINE%% *}"
 [[ ${#SOURCE_SHA} -eq 64 && "${SOURCE_SHA}" != *[!0-9a-f]* ]] \
   || fail "invalid source SHA-256 output: ${SOURCE_SHA_LINE}"
-log "source content and SHA-256 confirmed: ${SOURCE_SHA}"
+capture docker container exec "${WRITER_CONTAINER}" \
+  stat -c 'mode=%a uid=%u gid=%g path=%n' /source/evidence.txt
+SOURCE_METADATA="${CAPTURED_OUTPUT}"
+log "source content, SHA-256, mode, and ownership confirmed: ${SOURCE_SHA}; ${SOURCE_METADATA}"
 
 log 'creating a tar backup from a read-only source-volume mount'
 owns_backup_container=1
@@ -402,7 +409,16 @@ RESTORED_SHA="${RESTORED_SHA_LINE%% *}"
 [[ "${RESTORED_SHA}" == "${SOURCE_SHA}" ]] \
   || fail "restored SHA-256 does not match source SHA-256"
 
+capture docker container exec "${READER_CONTAINER}" \
+  stat -c 'mode=%a uid=%u gid=%g path=%n' /restored/evidence.txt
+RESTORED_METADATA="${CAPTURED_OUTPUT}"
+SOURCE_METADATA_VALUES="${SOURCE_METADATA% path=*}"
+RESTORED_METADATA_VALUES="${RESTORED_METADATA% path=*}"
+[[ "${RESTORED_METADATA_VALUES}" == "${SOURCE_METADATA_VALUES}" ]] \
+  || fail "restored mode or ownership does not match source metadata"
+
 log "content match confirmed: ${RESTORED_CONTENT}"
 log "SHA-256 match confirmed: source=${SOURCE_SHA} restored=${RESTORED_SHA}"
+log "mode and ownership match confirmed: source=${SOURCE_METADATA}; restored=${RESTORED_METADATA}"
 log 'all backup and restore checks passed; EXIT trap will remove remaining owned resources'
 exit 0

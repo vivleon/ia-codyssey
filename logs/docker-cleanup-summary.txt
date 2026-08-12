@@ -1,0 +1,48 @@
+# Docker cleanup evidence index
+# Reviewed at 2026-08-12T09:26:00Z.
+# This file is an index of commands and results already captured in the linked raw logs.
+# It does not claim that the cleanup commands were rerun at this review time.
+
+## One-off mission containers
+
+logs/ubuntu-container.txt:61-62
+$ docker rm -f ia-ubuntu-evidence-20260812
+ia-ubuntu-evidence-20260812
+
+logs/image-build-run.txt:174-175
+$ docker rm -f ia-codyssey-evidence-20260812
+ia-codyssey-evidence-20260812
+
+logs/bind-mount.txt:68-69
+$ docker rm -f ia-codyssey-bind-evidence-20260812
+ia-codyssey-bind-evidence-20260812
+
+## Containers and image from the port-conflict run
+
+logs/port-conflict.txt:78-83
+$ docker rm -f ia-port-retry-1786521450-89877-29227
+ia-port-retry-1786521450-89877-29227
+$ docker rm -f ia-port-owner-1786521450-89877-29227
+ia-port-owner-1786521450-89877-29227
+$ docker image rm ia-port-conflict-demo:1786521450-89877-29227
+Untagged: ia-port-conflict-demo:1786521450-89877-29227
+
+## Container and volume from the persistence run
+
+logs/volume-persistence.txt:33-37
+$ docker rm -f ia-volume-evidence-reader-20260812
+ia-volume-evidence-reader-20260812
+$ docker volume rm ia-codyssey-data-evidence-20260812
+ia-codyssey-data-evidence-20260812
+
+## Automated owned-resource cleanup
+
+The following raw logs use a unique run ID and ownership label, remove only
+resources created by that run, and confirm that the resources are absent:
+
+- logs/image-tag-reference.txt:94-114
+- logs/volume-name-reuse.txt:156-210
+- logs/volume-backup-restore.txt:125-139
+
+Result: container, image-alias, and volume cleanup evidence is consolidated here;
+the linked raw logs remain the source of truth for complete output and exit status.

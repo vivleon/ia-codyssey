@@ -1,0 +1,15 @@
+# NGINX runtime user and static-file ownership verification
+# Verified at 2026-08-12T09:25:47Z.
+
+$ docker image inspect ia-codyssey-web:1.0 --format 'Config.User={{json .Config.User}}'
+Config.User=""
+
+$ docker run --rm --entrypoint /bin/sh ia-codyssey-web:1.0 -ceu 'grep "^user " /etc/nginx/nginx.conf; grep "^nginx:" /etc/passwd; stat -c "mode=%a uid=%u gid=%g user=%U group=%G path=%n" /usr/share/nginx/html/index.html'
+user  nginx;
+nginx:x:101:101:nginx:/var/cache/nginx:/sbin/nologin
+mode=644 uid=0 gid=0 user=root group=root path=/usr/share/nginx/html/index.html
+
+# Interpretation: an empty Config.User means the image starts with its default
+# root user. NGINX config drops worker processes to the nginx account. The static
+# file is root-owned and mode 644, so the worker can read it but cannot modify it.
+# --rm removed this one-off verification container after it exited successfully.

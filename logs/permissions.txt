@@ -1,3 +1,8 @@
+# Review note added 2026-08-12T09:26:00Z:
+# - File 600 demonstrates owner-only access; restoring 644 lets the NGINX worker read the static file without granting write or execute permission.
+# - Directory 700 demonstrates owner-only traversal; restoring 755 lets other users traverse and read while only the owner can create or remove entries.
+# Ownership was not changed because this exercise verifies mode bits; the container service-user mapping is recorded separately in logs/nginx-ownership.txt.
+
 + stat -f '%Sp %OLp %N' app/index.html
 -rw-r--r-- 644 app/index.html
 + chmod 600 app/index.html

@@ -1,0 +1,124 @@
+# Fresh isolated terminal practice evidence
+# Timestamps use UTC (Z).
+# Redactions: <USER>, <USER_HOME>, <TEMP_PARENT>, and <TEMP_ROOT>.
+# All practice files are created under <TEMP_ROOT> and removed on exit.
+
+[2026-08-12T09:33:21Z] BEFORE create temporary workspace
+$ mktemp -d <TEMP_PARENT>/ia-codyssey-terminal-practice.XXXXXX
+<TEMP_ROOT>
+[2026-08-12T09:33:22Z] AFTER create temporary workspace (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE enter temporary workspace
+$ cd <TEMP_ROOT>
+(no output)
+[2026-08-12T09:33:22Z] AFTER enter temporary workspace (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE print temporary working directory
+$ pwd
+<TEMP_ROOT>
+[2026-08-12T09:33:22Z] AFTER print temporary working directory (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE create practice directory
+$ mkdir cli-demo
+(no output)
+[2026-08-12T09:33:22Z] AFTER create practice directory (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE enter practice directory
+$ cd cli-demo
+(no output)
+[2026-08-12T09:33:22Z] AFTER enter practice directory (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE print practice working directory
+$ pwd
+<TEMP_ROOT>/cli-demo
+[2026-08-12T09:33:22Z] AFTER print practice working directory (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE write text file
+$ printf '%s\n' 'Terminal CLI practice' > original.txt
+(no output)
+[2026-08-12T09:33:22Z] AFTER write text file (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE read text file
+$ cat original.txt
+Terminal CLI practice
+[2026-08-12T09:33:22Z] AFTER read text file (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE create empty file
+$ touch empty-file.txt
+(no output)
+[2026-08-12T09:33:22Z] AFTER create empty file (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE create hidden file
+$ printf '%s\n' 'Hidden CLI evidence' > .hidden-evidence
+(no output)
+[2026-08-12T09:33:22Z] AFTER create hidden file (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE list directory including hidden file
+$ ls -la
+total 16
+drwx------@ 5 <USER>  wheel  160 Aug 12 18:33 .
+drwx------@ 3 <USER>  wheel   96 Aug 12 18:33 ..
+-rw-------@ 1 <USER>  wheel   20 Aug 12 18:33 .hidden-evidence
+-rw-------@ 1 <USER>  wheel    0 Aug 12 18:33 empty-file.txt
+-rw-------@ 1 <USER>  wheel   22 Aug 12 18:33 original.txt
+[2026-08-12T09:33:22Z] AFTER list directory including hidden file (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE copy file
+$ cp original.txt copied.txt
+(no output)
+[2026-08-12T09:33:22Z] AFTER copy file (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE rename copied file
+$ mv copied.txt renamed.txt
+(no output)
+[2026-08-12T09:33:22Z] AFTER rename copied file (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE list after rename
+$ ls -la
+total 24
+drwx------@ 6 <USER>  wheel  192 Aug 12 18:33 .
+drwx------@ 3 <USER>  wheel   96 Aug 12 18:33 ..
+-rw-------@ 1 <USER>  wheel   20 Aug 12 18:33 .hidden-evidence
+-rw-------@ 1 <USER>  wheel    0 Aug 12 18:33 empty-file.txt
+-rw-------@ 1 <USER>  wheel   22 Aug 12 18:33 original.txt
+-rw-------@ 1 <USER>  wheel   22 Aug 12 18:33 renamed.txt
+[2026-08-12T09:33:22Z] AFTER list after rename (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE remove renamed file
+$ rm renamed.txt
+(no output)
+[2026-08-12T09:33:22Z] AFTER remove renamed file (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE verify removed file is absent
+$ test ! -e renamed.txt
+(no output)
+[2026-08-12T09:33:22Z] AFTER verify removed file is absent (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE final directory listing
+$ ls -la
+total 16
+drwx------@ 5 <USER>  wheel  160 Aug 12 18:33 .
+drwx------@ 3 <USER>  wheel   96 Aug 12 18:33 ..
+-rw-------@ 1 <USER>  wheel   20 Aug 12 18:33 .hidden-evidence
+-rw-------@ 1 <USER>  wheel    0 Aug 12 18:33 empty-file.txt
+-rw-------@ 1 <USER>  wheel   22 Aug 12 18:33 original.txt
+[2026-08-12T09:33:22Z] AFTER final directory listing (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE leave temporary workspace
+$ cd /
+(no output)
+[2026-08-12T09:33:22Z] AFTER leave temporary workspace (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE remove temporary workspace
+$ rm -rf -- <TEMP_ROOT>
+(no output)
+[2026-08-12T09:33:22Z] AFTER remove temporary workspace (exit=0)
+
+[2026-08-12T09:33:22Z] BEFORE verify temporary workspace absence
+$ test ! -e <TEMP_ROOT>
+(no output)
+[2026-08-12T09:33:22Z] AFTER verify temporary workspace absence (exit=0)
+
+PASS: temporary workspace is absent
+
+[2026-08-12T09:33:22Z] FINISH terminal practice verification (exit=0)

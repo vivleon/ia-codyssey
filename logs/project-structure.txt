@@ -1,0 +1,50 @@
+[project-structure] START UTC: 2026-08-12T09:36:55Z
+[project-structure] INFO validation is read-only except for its generated log
+[project-structure] INFO generated log excluded from validation: logs/project-structure.txt
+[project-structure] PASS directory: app/
+[project-structure] PASS directory: bind-app/
+[project-structure] PASS directory: logs/
+[project-structure] PASS directory: screenshots/
+[project-structure] PASS directory: scripts/
+[project-structure] PASS file: Dockerfile
+[project-structure] PASS file: README.md
+[project-structure] PASS file: app/index.html
+[project-structure] PASS file: bind-app/index.html
+[project-structure] PASS README link: logs/environment.txt
+[project-structure] PASS README link: logs/docker-verification.txt
+[project-structure] PASS README link: logs/git-verification.txt
+[project-structure] PASS README link: logs/image-build-run.txt
+[project-structure] PASS README link: logs/automated-verification.txt
+[project-structure] PASS README link: logs/terminal-practice.txt
+[project-structure] PASS README link: logs/terminal-practice-timestamped.txt
+[project-structure] PASS README link: scripts/verify-terminal-practice.sh
+[project-structure] PASS README link: logs/permissions.txt
+[project-structure] PASS README link: logs/nginx-ownership.txt
+[project-structure] PASS README link: logs/hello-world.txt
+[project-structure] PASS README link: logs/ubuntu-container.txt
+[project-structure] PASS README link: logs/docker-operations.txt
+[project-structure] PASS README link: logs/docker-cleanup-summary.txt
+[project-structure] PASS README link: logs/multi-container-ports.txt
+[project-structure] PASS README link: scripts/verify-image-tag-reference.sh
+[project-structure] PASS README link: logs/image-tag-reference.txt
+[project-structure] PASS README link: screenshots/port-mapping-8080-address-bar.png
+[project-structure] PASS README link: screenshots/port-mapping-8080.png
+[project-structure] PASS README link: screenshots/port-mapping-8081-address-bar.png
+[project-structure] PASS README link: screenshots/port-mapping-8081.png
+[project-structure] PASS README link: logs/port-screenshot-index.txt
+[project-structure] PASS README link: screenshots/bind-mount-before.png
+[project-structure] PASS README link: screenshots/bind-mount-after.png
+[project-structure] PASS README link: logs/bind-mount.txt
+[project-structure] PASS README link: logs/volume-persistence.txt
+[project-structure] PASS README link: scripts/verify-volume-backup.sh
+[project-structure] PASS README link: logs/volume-backup-restore.txt
+[project-structure] PASS README link: scripts/verify-volume-name-reuse.sh
+[project-structure] PASS README link: logs/volume-name-reuse.txt
+[project-structure] PASS README link: logs/git-push.txt
+[project-structure] PASS README link: screenshots/vscode-github-clean.png
+[project-structure] PASS README link: logs/troubleshooting-container-docker.txt
+[project-structure] PASS README link: scripts/verify-port-conflict.sh
+[project-structure] PASS README link: logs/port-conflict.txt
+[project-structure] SUMMARY required=9 local-link-occurrences=88 unique-local-targets=35 external-ignored=0 anchors-ignored=0 generated-log-links-skipped=3 failures=0
+[project-structure] RESULT PASS
+[project-structure] END UTC: 2026-08-12T09:36:56Z

@@ -1,0 +1,24 @@
+# Port screenshot evidence index
+# Screenshot creation times come from macOS file metadata and are recorded in UTC.
+
+file=screenshots/port-mapping-8080-address-bar.png
+port=8080
+created_utc=2026-08-12T07:50:54Z
+sha256=f7c401bcbb3b940f6cf760dab984d3df67bfa7c490030e15a26b0fda87bb8a2c
+
+file=screenshots/port-mapping-8081-address-bar.png
+port=8081
+created_utc=2026-08-12T08:02:54Z
+sha256=66c240fbf622b2df9a9db5550f5ea4d00da3cc8fb8e3a96175fa38e9a28e801a
+
+# Correlated live endpoint check (UTC)
+$ date -u '+%Y-%m-%dT%H:%M:%SZ'
+2026-08-12T09:25:31Z
+$ curl --silent --show-error --output /dev/null --write-out 'url=http://127.0.0.1:8080/ code=%{http_code} remote=%{remote_ip}:%{remote_port} bytes=%{size_download}\n' http://127.0.0.1:8080/
+url=http://127.0.0.1:8080/ code=200 remote=127.0.0.1:8080 bytes=692
+$ curl --silent --show-error --output /dev/null --write-out 'url=http://127.0.0.1:8081/ code=%{http_code} remote=%{remote_ip}:%{remote_port} bytes=%{size_download}\n' http://127.0.0.1:8081/
+url=http://127.0.0.1:8081/ code=200 remote=127.0.0.1:8081 bytes=692
+
+# The screenshots and curl checks are independent evidence sessions, not the
+# same request. The filename records the port, metadata records capture time,
+# and logs/multi-container-ports.txt contains the two-port HTTP and content-hash check.
