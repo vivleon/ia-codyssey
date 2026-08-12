@@ -1,15 +1,74 @@
-$ git config --global user.name
-vivleon
+# Re-verified on 2026-08-12. Email is masked by the displayed pipeline.
 
-$ git config --global user.email
-[MASKED]
-
-$ git config --global init.defaultBranch
-main
-
-$ git branch --show-current
-main
+$ git --no-pager config --list | sed -E 's/^(user\.email=).*/\1[MASKED]/'
+credential.helper=osxkeychain
+credential.helper=store
+filter.lfs.smudge=git-lfs smudge -- %f
+filter.lfs.process=git-lfs filter-process
+filter.lfs.required=true
+filter.lfs.clean=git-lfs clean -- %f
+user.name=vivleon
+user.email=[MASKED]
+init.defaultbranch=main
+core.repositoryformatversion=0
+core.filemode=true
+core.bare=false
+core.logallrefupdates=true
+core.ignorecase=true
+core.precomposeunicode=true
+remote.origin.url=https://github.com/vivleon/ia-codyssey.git
+remote.origin.fetch=+refs/heads/*:refs/remotes/origin/*
+branch.main.remote=origin
+branch.main.merge=refs/heads/main
 
 $ git remote -v
 origin	https://github.com/vivleon/ia-codyssey.git (fetch)
 origin	https://github.com/vivleon/ia-codyssey.git (push)
+
+$ git branch --show-current
+main
+
+$ git status --short --branch
+## main...origin/main
+ M Dockerfile
+ M README.md
+ M logs/bind-mount.txt
+ M logs/environment.txt
+ M logs/git-verification.txt
+ M logs/terminal-practice.txt
+ M logs/ubuntu-container.txt
+ M logs/volume-persistence.txt
+ M screenshots/bind-mount-after.png
+ M screenshots/bind-mount-before.png
+ M screenshots/port-mapping-8080.png
+ M screenshots/port-mapping-8081.png
+ D screenshots/vscode-github-link.png
+?? .dockerignore
+?? logs/automated-verification.txt
+?? logs/image-build-run.txt
+?? logs/multi-container-ports.txt
+?? scripts/
+
+# These are the intended uncommitted remediation changes, not final
+# working-tree-clean proof. Replacing this already-modified log does not change
+# the status paths listed above.
+
+$ git rev-parse HEAD
+2e681fd5c6765b86a51f61da4a8e546f8f7accca
+
+$ git rev-parse origin/main
+2e681fd5c6765b86a51f61da4a8e546f8f7accca
+
+$ git ls-remote origin refs/heads/main
+2e681fd5c6765b86a51f61da4a8e546f8f7accca	refs/heads/main
+
+# Public remote reachability is confirmed above; it does not prove login or push access.
+
+$ command -v gh || echo 'gh CLI not installed; GitHub login not verified in this log'
+gh CLI not installed; GitHub login not verified in this log
+
+$ git diff --check
+# no output; exit code 0
+
+$ git grep -nEI '(ghp_|github_pat_|AKIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY|password[[:space:]]*[:=])' -- . ':!README.md' ':!logs/*'
+# no matching lines; git grep exit code 1

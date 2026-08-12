@@ -1,0 +1,49 @@
+$ ./scripts/verify.sh
+[verify] checking Docker engine
+[verify] building ia-codyssey-verify:20260812072524-53048-tcjsfe from the minimized context
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 708B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 138B done
+#3 DONE 0.0s
+
+#4 [internal] load build context
+#4 transferring context: 59B done
+#4 DONE 0.0s
+
+#5 [1/2] FROM docker.io/library/nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+#5 resolve docker.io/library/nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752 0.0s done
+#5 DONE 0.0s
+
+#6 [2/2] COPY app/ /usr/share/nginx/html/
+#6 CACHED
+
+#7 exporting to image
+#7 exporting layers done
+#7 exporting manifest sha256:669813b038650a1920e667bab7b17f29842286e7841d6ac514a4d2783b262bcc 0.0s done
+#7 exporting config sha256:90aacccc814fb028aeac855051982027e01d90ee1a13a6de403e4dcabb96f8f4 done
+#7 exporting attestation manifest sha256:5ce61bc08c683de36808d31f2732ade97ce3dc61cac6725380b506eca545bf4f 0.0s done
+#7 exporting manifest list sha256:e76dd33dbf1a41115b7cee78ff5f5e212aa27d954926fa5d7ec0f33d8b58b1b9 done
+#7 naming to docker.io/library/ia-codyssey-verify:20260812072524-53048-tcjsfe done
+#7 unpacking to docker.io/library/ia-codyssey-verify:20260812072524-53048-tcjsfe 0.0s done
+#7 DONE 0.1s
+[verify] creating isolated web container
+[verify] HTTP 200 confirmed at http://127.0.0.1:59938/
+[verify] health status confirmed: healthy
+[verify] verifying live bind-mount updates
+[verify] HTTP 200 confirmed at http://127.0.0.1:59941/
+[verify] HTTP 200 confirmed at http://127.0.0.1:59941/?run=20260812072524-53048-tcjsfe
+[verify] bind-mount update confirmed
+[verify] verifying named-volume persistence across containers
+[verify] named-volume persistence confirmed
+[verify] all checks passed; exiting with status 0
+[verify] cleaning up resources for 20260812072524-53048-tcjsfe
+
+# Process exit code: 0

@@ -1,0 +1,132 @@
+[volume-backup] Docker named-volume backup and restore verification
+[volume-backup] UTC start: 2026-08-12T07:57:30Z
+[volume-backup] run id: 20260812T075730Z-89878-1pbuvl
+[volume-backup] pinned image: ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+[volume-backup] temporary host backup directory: /var/folders/dt/jttzxxwj4_9gm__dyxf0s0jh0000gn/T//ia-codyssey-volume-backup.1pBUVL
+$ docker context show
+desktop-linux
+$ docker version --format Client=\{\{.Client.Version\}\}\ Server=\{\{.Server.Version\}\}
+Client=29.3.1 Server=29.3.1
+$ docker info --format Engine=\{\{.ServerVersion\}\}\ OS=\{\{.OperatingSystem\}\}\ Architecture=\{\{.Architecture\}\}
+Engine=29.3.1 OS=Docker Desktop Architecture=aarch64
+$ docker image inspect ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb --format Id=\{\{.Id\}\}\ RepoDigests=\{\{json\ .RepoDigests\}\}\ OS=\{\{.Os\}\}\ Architecture=\{\{.Architecture\}\}
+Id=sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb RepoDigests=["ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb"] OS=linux Architecture=arm64
+[volume-backup] name is unused: volume ia-codyssey-backup-source-20260812T075730Z-89878-1pbuvl
+[volume-backup] name is unused: volume ia-codyssey-backup-restored-20260812T075730Z-89878-1pbuvl
+[volume-backup] name is unused: container ia-codyssey-backup-writer-20260812T075730Z-89878-1pbuvl
+[volume-backup] name is unused: container ia-codyssey-backup-archiver-20260812T075730Z-89878-1pbuvl
+[volume-backup] name is unused: container ia-codyssey-backup-restorer-20260812T075730Z-89878-1pbuvl
+[volume-backup] name is unused: container ia-codyssey-backup-reader-20260812T075730Z-89878-1pbuvl
+[volume-backup] creating the source volume and writer container
+$ docker volume create --label io.github.vivleon.ia-codyssey.volume-backup-run=20260812T075730Z-89878-1pbuvl ia-codyssey-backup-source-20260812T075730Z-89878-1pbuvl
+ia-codyssey-backup-source-20260812T075730Z-89878-1pbuvl
+$ volume_owner_label ia-codyssey-backup-source-20260812T075730Z-89878-1pbuvl
+20260812T075730Z-89878-1pbuvl
+$ docker volume inspect ia-codyssey-backup-source-20260812T075730Z-89878-1pbuvl
+[
+    {
+        "CreatedAt": "2026-08-12T07:57:32Z",
+        "Driver": "local",
+        "Labels": {
+            "io.github.vivleon.ia-codyssey.volume-backup-run": "20260812T075730Z-89878-1pbuvl"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/ia-codyssey-backup-source-20260812T075730Z-89878-1pbuvl/_data",
+        "Name": "ia-codyssey-backup-source-20260812T075730Z-89878-1pbuvl",
+        "Options": null,
+        "Scope": "local"
+    }
+]
+$ docker container create --name ia-codyssey-backup-writer-20260812T075730Z-89878-1pbuvl --label io.github.vivleon.ia-codyssey.volume-backup-run=20260812T075730Z-89878-1pbuvl --mount type=volume\,source=ia-codyssey-backup-source-20260812T075730Z-89878-1pbuvl\,target=/source --entrypoint /usr/bin/sleep ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb infinity
+65937ef1a82980c8a60f6cb29c3f8d52f47375e56674759018e9800b36132822
+$ docker container start ia-codyssey-backup-writer-20260812T075730Z-89878-1pbuvl
+ia-codyssey-backup-writer-20260812T075730Z-89878-1pbuvl
+$ docker container inspect ia-codyssey-backup-writer-20260812T075730Z-89878-1pbuvl --format \{\{json\ .Mounts\}\}
+[{"Type":"volume","Name":"ia-codyssey-backup-source-20260812T075730Z-89878-1pbuvl","Source":"/var/lib/docker/volumes/ia-codyssey-backup-source-20260812T075730Z-89878-1pbuvl/_data","Destination":"/source","Driver":"local","Mode":"z","RW":true,"Propagation":""}]
+[volume-backup] writing the source payload and reading it back
+$ docker container exec ia-codyssey-backup-writer-20260812T075730Z-89878-1pbuvl /bin/sh -ceu printf\ \"%s\\n\"\ \"\$1\"\ \>\ /source/evidence.txt volume-writer Docker\ volume\ backup\ restored\ successfully\ \(20260812T075730Z-89878-1pbuvl\)
+$ docker container exec ia-codyssey-backup-writer-20260812T075730Z-89878-1pbuvl cat /source/evidence.txt
+Docker volume backup restored successfully (20260812T075730Z-89878-1pbuvl)
+$ docker container exec ia-codyssey-backup-writer-20260812T075730Z-89878-1pbuvl sha256sum /source/evidence.txt
+4ae9052aab3cd82378255efb420deb74762a28030366839d0cfd687b5ad283c9  /source/evidence.txt
+[volume-backup] source content and SHA-256 confirmed: 4ae9052aab3cd82378255efb420deb74762a28030366839d0cfd687b5ad283c9
+[volume-backup] creating a tar backup from a read-only source-volume mount
+$ docker container create --name ia-codyssey-backup-archiver-20260812T075730Z-89878-1pbuvl --label io.github.vivleon.ia-codyssey.volume-backup-run=20260812T075730Z-89878-1pbuvl --mount type=volume\,source=ia-codyssey-backup-source-20260812T075730Z-89878-1pbuvl\,target=/source\,readonly --mount type=bind\,source=/var/folders/dt/jttzxxwj4_9gm__dyxf0s0jh0000gn/T//ia-codyssey-volume-backup.1pBUVL\,target=/backup --entrypoint /bin/sh ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb -ceu tar\ -C\ /source\ --numeric-owner\ -cpf\ /backup/volume-backup.tar\ .\;\ printf\ \"tar\ backup\ created:\ /backup/volume-backup.tar\\n\"
+19df3c0cac2f4ce64f95f717fd9360a4aa6091b33c72e19a12a10b62401ef5f0
+$ docker container inspect ia-codyssey-backup-archiver-20260812T075730Z-89878-1pbuvl --format \{\{json\ .Mounts\}\}
+[{"Type":"volume","Name":"ia-codyssey-backup-source-20260812T075730Z-89878-1pbuvl","Source":"/var/lib/docker/volumes/ia-codyssey-backup-source-20260812T075730Z-89878-1pbuvl/_data","Destination":"/source","Driver":"local","Mode":"z","RW":false,"Propagation":""},{"Type":"bind","Source":"/host_mnt/private/var/folders/dt/jttzxxwj4_9gm__dyxf0s0jh0000gn/T/ia-codyssey-volume-backup.1pBUVL","Destination":"/backup","Mode":"","RW":true,"Propagation":"rprivate"}]
+$ docker container inspect ia-codyssey-backup-archiver-20260812T075730Z-89878-1pbuvl --format \{\{range\ .Mounts\}\}\{\{if\ eq\ .Destination\ \"/source\"\}\}source_mount_rw=\{\{.RW\}\}\{\{end\}\}\{\{end\}\}
+source_mount_rw=false
+$ docker container start --attach ia-codyssey-backup-archiver-20260812T075730Z-89878-1pbuvl
+tar backup created: /backup/volume-backup.tar
+$ docker container inspect ia-codyssey-backup-archiver-20260812T075730Z-89878-1pbuvl --format \{\{.State.ExitCode\}\}
+0
+$ ls -l /var/folders/dt/jttzxxwj4_9gm__dyxf0s0jh0000gn/T//ia-codyssey-volume-backup.1pBUVL/volume-backup.tar
+-rw-r--r--  1 [USER]  staff  10240 Aug 12 16:57 /var/folders/dt/jttzxxwj4_9gm__dyxf0s0jh0000gn/T//ia-codyssey-volume-backup.1pBUVL/volume-backup.tar
+$ docker container rm ia-codyssey-backup-archiver-20260812T075730Z-89878-1pbuvl
+ia-codyssey-backup-archiver-20260812T075730Z-89878-1pbuvl
+[volume-backup] removing the writer container and original source volume before restore
+$ docker container rm --force ia-codyssey-backup-writer-20260812T075730Z-89878-1pbuvl
+ia-codyssey-backup-writer-20260812T075730Z-89878-1pbuvl
+$ docker volume rm ia-codyssey-backup-source-20260812T075730Z-89878-1pbuvl
+ia-codyssey-backup-source-20260812T075730Z-89878-1pbuvl
+[volume-backup] confirmed: writer container and original source volume are absent
+[volume-backup] creating a new empty volume and restoring the tar backup
+$ docker volume create --label io.github.vivleon.ia-codyssey.volume-backup-run=20260812T075730Z-89878-1pbuvl ia-codyssey-backup-restored-20260812T075730Z-89878-1pbuvl
+ia-codyssey-backup-restored-20260812T075730Z-89878-1pbuvl
+$ volume_owner_label ia-codyssey-backup-restored-20260812T075730Z-89878-1pbuvl
+20260812T075730Z-89878-1pbuvl
+$ docker volume inspect ia-codyssey-backup-restored-20260812T075730Z-89878-1pbuvl
+[
+    {
+        "CreatedAt": "2026-08-12T07:57:35Z",
+        "Driver": "local",
+        "Labels": {
+            "io.github.vivleon.ia-codyssey.volume-backup-run": "20260812T075730Z-89878-1pbuvl"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/ia-codyssey-backup-restored-20260812T075730Z-89878-1pbuvl/_data",
+        "Name": "ia-codyssey-backup-restored-20260812T075730Z-89878-1pbuvl",
+        "Options": null,
+        "Scope": "local"
+    }
+]
+$ docker container create --name ia-codyssey-backup-restorer-20260812T075730Z-89878-1pbuvl --label io.github.vivleon.ia-codyssey.volume-backup-run=20260812T075730Z-89878-1pbuvl --mount type=volume\,source=ia-codyssey-backup-restored-20260812T075730Z-89878-1pbuvl\,target=/restore --mount type=bind\,source=/var/folders/dt/jttzxxwj4_9gm__dyxf0s0jh0000gn/T//ia-codyssey-volume-backup.1pBUVL\,target=/backup\,readonly --entrypoint /bin/sh ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb -ceu test\ -z\ \"\$\(ls\ -A\ /restore\)\"\;\ printf\ \"restore\ target\ confirmed\ empty\\n\"\;\ tar\ -C\ /restore\ --numeric-owner\ -xpf\ /backup/volume-backup.tar\;\ printf\ \"tar\ restore\ completed\\n\"
+0cf158472bd7b94bf2528c4f6e43a092ddb4e69bfea99ea7ebb362f05a6e11b8
+$ docker container inspect ia-codyssey-backup-restorer-20260812T075730Z-89878-1pbuvl --format \{\{json\ .Mounts\}\}
+[{"Type":"volume","Name":"ia-codyssey-backup-restored-20260812T075730Z-89878-1pbuvl","Source":"/var/lib/docker/volumes/ia-codyssey-backup-restored-20260812T075730Z-89878-1pbuvl/_data","Destination":"/restore","Driver":"local","Mode":"z","RW":true,"Propagation":""},{"Type":"bind","Source":"/host_mnt/private/var/folders/dt/jttzxxwj4_9gm__dyxf0s0jh0000gn/T/ia-codyssey-volume-backup.1pBUVL","Destination":"/backup","Mode":"","RW":false,"Propagation":"rprivate"}]
+$ docker container start --attach ia-codyssey-backup-restorer-20260812T075730Z-89878-1pbuvl
+restore target confirmed empty
+tar restore completed
+$ docker container inspect ia-codyssey-backup-restorer-20260812T075730Z-89878-1pbuvl --format \{\{.State.ExitCode\}\}
+0
+$ docker container rm ia-codyssey-backup-restorer-20260812T075730Z-89878-1pbuvl
+ia-codyssey-backup-restorer-20260812T075730Z-89878-1pbuvl
+[volume-backup] using a separate read-only reader container to verify restored data
+$ docker container create --name ia-codyssey-backup-reader-20260812T075730Z-89878-1pbuvl --label io.github.vivleon.ia-codyssey.volume-backup-run=20260812T075730Z-89878-1pbuvl --mount type=volume\,source=ia-codyssey-backup-restored-20260812T075730Z-89878-1pbuvl\,target=/restored\,readonly --entrypoint /usr/bin/sleep ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb infinity
+870d01b2acd714390eaab52e4bd32952f8ff22810bb291e77f1653acb386d537
+$ docker container start ia-codyssey-backup-reader-20260812T075730Z-89878-1pbuvl
+ia-codyssey-backup-reader-20260812T075730Z-89878-1pbuvl
+$ docker container inspect ia-codyssey-backup-reader-20260812T075730Z-89878-1pbuvl --format \{\{json\ .Mounts\}\}
+[{"Type":"volume","Name":"ia-codyssey-backup-restored-20260812T075730Z-89878-1pbuvl","Source":"/var/lib/docker/volumes/ia-codyssey-backup-restored-20260812T075730Z-89878-1pbuvl/_data","Destination":"/restored","Driver":"local","Mode":"z","RW":false,"Propagation":""}]
+$ docker container inspect ia-codyssey-backup-reader-20260812T075730Z-89878-1pbuvl --format \{\{range\ .Mounts\}\}\{\{if\ eq\ .Destination\ \"/restored\"\}\}reader_mount_rw=\{\{.RW\}\}\{\{end\}\}\{\{end\}\}
+reader_mount_rw=false
+$ docker container exec ia-codyssey-backup-reader-20260812T075730Z-89878-1pbuvl cat /restored/evidence.txt
+Docker volume backup restored successfully (20260812T075730Z-89878-1pbuvl)
+$ docker container exec ia-codyssey-backup-reader-20260812T075730Z-89878-1pbuvl sha256sum /restored/evidence.txt
+4ae9052aab3cd82378255efb420deb74762a28030366839d0cfd687b5ad283c9  /restored/evidence.txt
+[volume-backup] content match confirmed: Docker volume backup restored successfully (20260812T075730Z-89878-1pbuvl)
+[volume-backup] SHA-256 match confirmed: source=4ae9052aab3cd82378255efb420deb74762a28030366839d0cfd687b5ad283c9 restored=4ae9052aab3cd82378255efb420deb74762a28030366839d0cfd687b5ad283c9
+[volume-backup] all backup and restore checks passed; EXIT trap will remove remaining owned resources
+[volume-backup] cleanup starting for run 20260812T075730Z-89878-1pbuvl
+$ docker container rm --force ia-codyssey-backup-reader-20260812T075730Z-89878-1pbuvl
+ia-codyssey-backup-reader-20260812T075730Z-89878-1pbuvl
+$ docker volume rm ia-codyssey-backup-restored-20260812T075730Z-89878-1pbuvl
+ia-codyssey-backup-restored-20260812T075730Z-89878-1pbuvl
+[volume-backup] cleanup confirmed container absent: ia-codyssey-backup-writer-20260812T075730Z-89878-1pbuvl
+[volume-backup] cleanup confirmed container absent: ia-codyssey-backup-archiver-20260812T075730Z-89878-1pbuvl
+[volume-backup] cleanup confirmed container absent: ia-codyssey-backup-restorer-20260812T075730Z-89878-1pbuvl
+[volume-backup] cleanup confirmed container absent: ia-codyssey-backup-reader-20260812T075730Z-89878-1pbuvl
+[volume-backup] cleanup confirmed volume absent: ia-codyssey-backup-source-20260812T075730Z-89878-1pbuvl
+[volume-backup] cleanup confirmed volume absent: ia-codyssey-backup-restored-20260812T075730Z-89878-1pbuvl
+$ rm -rf -- /var/folders/dt/jttzxxwj4_9gm__dyxf0s0jh0000gn/T//ia-codyssey-volume-backup.1pBUVL
+[volume-backup] cleanup confirmed temporary backup directory absent: /var/folders/dt/jttzxxwj4_9gm__dyxf0s0jh0000gn/T//ia-codyssey-volume-backup.1pBUVL
+[volume-backup] cleanup complete; verification exit status=0

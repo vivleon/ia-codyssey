@@ -1,0 +1,30 @@
+# Re-verified on 2026-08-12. Distinct container IDs and host ports serve identical content.
+
+$ docker ps --filter name=ia-codyssey-web-8080 --filter name=ia-codyssey-web-8081
+CONTAINER ID   IMAGE          COMMAND                  CREATED       STATUS                 PORTS                                     NAMES
+39b06e3ea60d   a1dc1f0c3d6f   "/docker-entrypoint.…"   13 days ago   Up 13 days (healthy)   0.0.0.0:8081->80/tcp, [::]:8081->80/tcp   ia-codyssey-web-8081
+57aa611a0dd3   a1dc1f0c3d6f   "/docker-entrypoint.…"   13 days ago   Up 13 days (healthy)   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   ia-codyssey-web-8080
+
+$ docker inspect --format 'Name={{.Name}} ContainerID={{.Id}} ImageID={{.Image}} Ports={{json .NetworkSettings.Ports}}' ia-codyssey-web-8080 ia-codyssey-web-8081
+Name=/ia-codyssey-web-8080 ContainerID=57aa611a0dd3e1dc2b7fbca1125dc7003d9c3bbf0422de66ce15a00b134668c9 ImageID=sha256:a1dc1f0c3d6f09affeac384eb5297cc52158ceb5f47b13ba03ae21ab47bc265c Ports={"80/tcp":[{"HostIp":"0.0.0.0","HostPort":"8080"},{"HostIp":"::","HostPort":"8080"}]}
+Name=/ia-codyssey-web-8081 ContainerID=39b06e3ea60d96dd26c601c9094698eea34fd881e97e5c2d799f2869ea689507 ImageID=sha256:a1dc1f0c3d6f09affeac384eb5297cc52158ceb5f47b13ba03ae21ab47bc265c Ports={"80/tcp":[{"HostIp":"0.0.0.0","HostPort":"8081"},{"HostIp":"::","HostPort":"8081"}]}
+
+$ docker port ia-codyssey-web-8080
+80/tcp -> 0.0.0.0:8080
+80/tcp -> [::]:8080
+
+$ docker port ia-codyssey-web-8081
+80/tcp -> 0.0.0.0:8081
+80/tcp -> [::]:8081
+
+$ curl --silent --show-error --output /dev/null --write-out 'url=http://127.0.0.1:8080/ code=%{http_code} remote=%{remote_ip}:%{remote_port} bytes=%{size_download}\n' http://127.0.0.1:8080/
+url=http://127.0.0.1:8080/ code=200 remote=127.0.0.1:8080 bytes=692
+
+$ curl --silent --show-error --output /dev/null --write-out 'url=http://127.0.0.1:8081/ code=%{http_code} remote=%{remote_ip}:%{remote_port} bytes=%{size_download}\n' http://127.0.0.1:8081/
+url=http://127.0.0.1:8081/ code=200 remote=127.0.0.1:8081 bytes=692
+
+$ curl --silent --show-error http://127.0.0.1:8080/ | shasum -a 256
+1f6dc7b94662353fd1edf6c968da26e8cf0f80966a9db1073aca7fa8b468bae1  -
+
+$ curl --silent --show-error http://127.0.0.1:8081/ | shasum -a 256
+1f6dc7b94662353fd1edf6c968da26e8cf0f80966a9db1073aca7fa8b468bae1  -

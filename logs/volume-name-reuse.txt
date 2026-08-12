@@ -1,0 +1,210 @@
+[volume-name-reuse] Docker named-volume reuse verification
+[volume-name-reuse] UTC start: 2026-08-12T08:05:33Z
+[volume-name-reuse] run id: 20260812T080533Z-3334-21062-23454
+[volume-name-reuse] pinned image: ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+[volume-name-reuse] ownership label: io.github.vivleon.ia-codyssey.volume-name-reuse-run=20260812T080533Z-3334-21062-23454
+[volume-name-reuse] same-name volume: ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] different fresh volume: ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454
+$ docker context show
+desktop-linux
+$ docker version --format Client=\{\{.Client.Version\}\}\ Server=\{\{.Server.Version\}\}
+Client=29.3.1 Server=29.3.1
+$ docker image inspect ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb --format Id=\{\{.Id\}\}\ RepoDigests=\{\{json\ .RepoDigests\}\}\ OS=\{\{.Os\}\}\ Architecture=\{\{.Architecture\}\}
+Id=sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb RepoDigests=["ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb"] OS=linux Architecture=arm64
+[command-exit] 0
+[volume-name-reuse] assertion PASS: pinned Ubuntu image is available and inspectable
+[volume-name-reuse] preflight: every planned resource name must be unused
+$ docker volume ls --filter name=\^ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454\$ --format \{\{.Name\}\}
+[command-exit] 0
+[volume-name-reuse] assertion PASS: Docker accepted the pre-existing volume name check for ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] assertion PASS: name was unused before creation: volume ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+$ docker volume ls --filter name=\^ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454\$ --format \{\{.Name\}\}
+[command-exit] 0
+[volume-name-reuse] assertion PASS: Docker accepted the pre-existing volume name check for ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] assertion PASS: name was unused before creation: volume ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454
+$ docker container ls --all --filter name=\^/ia-codyssey-name-reuse-writer-20260812T080533Z-3334-21062-23454\$ --format \{\{.Names\}\}
+[command-exit] 0
+[volume-name-reuse] assertion PASS: Docker accepted the pre-existing container name check for ia-codyssey-name-reuse-writer-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] assertion PASS: name was unused before creation: container ia-codyssey-name-reuse-writer-20260812T080533Z-3334-21062-23454
+$ docker container ls --all --filter name=\^/ia-codyssey-name-reuse-reader-20260812T080533Z-3334-21062-23454\$ --format \{\{.Names\}\}
+[command-exit] 0
+[volume-name-reuse] assertion PASS: Docker accepted the pre-existing container name check for ia-codyssey-name-reuse-reader-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] assertion PASS: name was unused before creation: container ia-codyssey-name-reuse-reader-20260812T080533Z-3334-21062-23454
+$ docker container ls --all --filter name=\^/ia-codyssey-name-reuse-empty-reader-20260812T080533Z-3334-21062-23454\$ --format \{\{.Names\}\}
+[command-exit] 0
+[volume-name-reuse] assertion PASS: Docker accepted the pre-existing container name check for ia-codyssey-name-reuse-empty-reader-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] assertion PASS: name was unused before creation: container ia-codyssey-name-reuse-empty-reader-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] phase 1: create one volume and write a sentinel into it
+$ docker volume create --label io.github.vivleon.ia-codyssey.volume-name-reuse-run=20260812T080533Z-3334-21062-23454 ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+[command-exit] 0
+[volume-name-reuse] assertion PASS: initial volume creation succeeded
+[volume-name-reuse] assertion PASS: initial create returned the requested volume name
+$ docker volume inspect --format \{\{\ index\ .Labels\ \"io.github.vivleon.ia-codyssey.volume-name-reuse-run\"\ \}\} ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+20260812T080533Z-3334-21062-23454
+[command-exit] 0
+[volume-name-reuse] assertion PASS: owned volume exists: ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] assertion PASS: volume ownership label matches this run: ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+$ docker volume inspect --format CreatedAt=\{\{.CreatedAt\}\}\|Mountpoint=\{\{.Mountpoint\}\}\|Driver=\{\{.Driver\}\} ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+CreatedAt=2026-08-12T08:05:34Z|Mountpoint=/var/lib/docker/volumes/ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454/_data|Driver=local
+[command-exit] 0
+[volume-name-reuse] assertion PASS: initial volume identity was inspectable
+[volume-name-reuse] assertion PASS: initial volume identity was nonempty
+$ docker container create --name ia-codyssey-name-reuse-writer-20260812T080533Z-3334-21062-23454 --label io.github.vivleon.ia-codyssey.volume-name-reuse-run=20260812T080533Z-3334-21062-23454 --mount type=volume\,source=ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454\,target=/evidence --entrypoint /bin/sh ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb -ceu printf\ \"%s\\n\"\ \"\$1\"\ \>\ /evidence/sentinel.txt\;\ printf\ \"sentinel-written=%s\\n\"\ \"\$1\" volume-writer stale-volume-sentinel-20260812T080533Z-3334-21062-23454
+f9fecc59cbc4efe4b0380a4bee14d9fc6a0d37cee9d70b82869a69b3b2487bab
+[command-exit] 0
+[volume-name-reuse] assertion PASS: sentinel writer container creation succeeded
+[volume-name-reuse] assertion PASS: sentinel writer container ID was returned
+$ docker container inspect --format \{\{\ index\ .Config.Labels\ \"io.github.vivleon.ia-codyssey.volume-name-reuse-run\"\ \}\} ia-codyssey-name-reuse-writer-20260812T080533Z-3334-21062-23454
+20260812T080533Z-3334-21062-23454
+[command-exit] 0
+[volume-name-reuse] assertion PASS: owned container exists: ia-codyssey-name-reuse-writer-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] assertion PASS: container ownership label matches this run: ia-codyssey-name-reuse-writer-20260812T080533Z-3334-21062-23454
+$ docker container start --attach ia-codyssey-name-reuse-writer-20260812T080533Z-3334-21062-23454
+sentinel-written=stale-volume-sentinel-20260812T080533Z-3334-21062-23454
+[command-exit] 0
+[volume-name-reuse] assertion PASS: sentinel writer ran successfully
+[volume-name-reuse] assertion PASS: writer reported the exact run-scoped sentinel
+$ docker container inspect --format \{\{.State.ExitCode\}\} ia-codyssey-name-reuse-writer-20260812T080533Z-3334-21062-23454
+0
+[command-exit] 0
+[volume-name-reuse] assertion PASS: container exit code was inspectable: ia-codyssey-name-reuse-writer-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] assertion PASS: container completed successfully: ia-codyssey-name-reuse-writer-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] phase 2: call docker volume create again with the exact SAME name
+$ docker volume create --label io.github.vivleon.ia-codyssey.volume-name-reuse-run=20260812T080533Z-3334-21062-23454 ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+[command-exit] 0
+[volume-name-reuse] assertion PASS: same-name docker volume create call succeeded
+[volume-name-reuse] assertion PASS: same-name create returned the already-existing volume name
+$ docker volume inspect --format \{\{\ index\ .Labels\ \"io.github.vivleon.ia-codyssey.volume-name-reuse-run\"\ \}\} ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+20260812T080533Z-3334-21062-23454
+[command-exit] 0
+[volume-name-reuse] assertion PASS: owned volume exists: ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] assertion PASS: volume ownership label matches this run: ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+$ docker volume inspect --format CreatedAt=\{\{.CreatedAt\}\}\|Mountpoint=\{\{.Mountpoint\}\}\|Driver=\{\{.Driver\}\} ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+CreatedAt=2026-08-12T08:05:34Z|Mountpoint=/var/lib/docker/volumes/ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454/_data|Driver=local
+[command-exit] 0
+[volume-name-reuse] assertion PASS: same-name volume identity was inspectable after create
+[volume-name-reuse] assertion PASS: same-name create preserved CreatedAt, Mountpoint, and Driver (the original volume was reused)
+$ docker container create --name ia-codyssey-name-reuse-reader-20260812T080533Z-3334-21062-23454 --label io.github.vivleon.ia-codyssey.volume-name-reuse-run=20260812T080533Z-3334-21062-23454 --mount type=volume\,source=ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454\,target=/evidence\,readonly --entrypoint /bin/sh ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb -ceu actual=\$\(cat\ /evidence/sentinel.txt\)\;\ test\ \"\$actual\"\ =\ \"\$1\"\;\ printf\ \"sentinel-present=%s\\n\"\ \"\$actual\" reuse-reader stale-volume-sentinel-20260812T080533Z-3334-21062-23454
+aa051260f111ae9e355911c45aa0aa5fb584f952387fc99244cb1ff7748d2a56
+[command-exit] 0
+[volume-name-reuse] assertion PASS: same-name volume reader container creation succeeded
+[volume-name-reuse] assertion PASS: same-name volume reader container ID was returned
+$ docker container inspect --format \{\{\ index\ .Config.Labels\ \"io.github.vivleon.ia-codyssey.volume-name-reuse-run\"\ \}\} ia-codyssey-name-reuse-reader-20260812T080533Z-3334-21062-23454
+20260812T080533Z-3334-21062-23454
+[command-exit] 0
+[volume-name-reuse] assertion PASS: owned container exists: ia-codyssey-name-reuse-reader-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] assertion PASS: container ownership label matches this run: ia-codyssey-name-reuse-reader-20260812T080533Z-3334-21062-23454
+$ docker container start --attach ia-codyssey-name-reuse-reader-20260812T080533Z-3334-21062-23454
+sentinel-present=stale-volume-sentinel-20260812T080533Z-3334-21062-23454
+[command-exit] 0
+[volume-name-reuse] assertion PASS: same-name volume reader ran successfully
+[volume-name-reuse] assertion PASS: stale sentinel remained after same-name docker volume create
+$ docker container inspect --format \{\{.State.ExitCode\}\} ia-codyssey-name-reuse-reader-20260812T080533Z-3334-21062-23454
+0
+[command-exit] 0
+[volume-name-reuse] assertion PASS: container exit code was inspectable: ia-codyssey-name-reuse-reader-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] assertion PASS: container completed successfully: ia-codyssey-name-reuse-reader-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] phase 3: create a DIFFERENT unique volume and prove it is empty
+[volume-name-reuse] assertion PASS: fresh volume name differs from the reused volume name
+$ docker volume create --label io.github.vivleon.ia-codyssey.volume-name-reuse-run=20260812T080533Z-3334-21062-23454 ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454
+ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454
+[command-exit] 0
+[volume-name-reuse] assertion PASS: different fresh volume creation succeeded
+[volume-name-reuse] assertion PASS: fresh create returned the different requested volume name
+$ docker volume inspect --format \{\{\ index\ .Labels\ \"io.github.vivleon.ia-codyssey.volume-name-reuse-run\"\ \}\} ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454
+20260812T080533Z-3334-21062-23454
+[command-exit] 0
+[volume-name-reuse] assertion PASS: owned volume exists: ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] assertion PASS: volume ownership label matches this run: ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454
+$ docker volume inspect --format \{\{.Mountpoint\}\} ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+/var/lib/docker/volumes/ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454/_data
+[command-exit] 0
+[volume-name-reuse] assertion PASS: reused volume mountpoint was inspectable
+$ docker volume inspect --format \{\{.Mountpoint\}\} ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454
+/var/lib/docker/volumes/ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454/_data
+[command-exit] 0
+[volume-name-reuse] assertion PASS: fresh volume mountpoint was inspectable
+[volume-name-reuse] assertion PASS: different volume has a different Docker mountpoint
+$ docker container create --name ia-codyssey-name-reuse-empty-reader-20260812T080533Z-3334-21062-23454 --label io.github.vivleon.ia-codyssey.volume-name-reuse-run=20260812T080533Z-3334-21062-23454 --mount type=volume\,source=ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454\,target=/evidence\,readonly --entrypoint /bin/sh ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb -ceu test\ \!\ -e\ /evidence/sentinel.txt\;\ test\ -z\ \"\$\(ls\ -A\ /evidence\)\"\;\ printf\ \"sentinel-absent=/evidence/sentinel.txt\\nfresh-volume-empty=yes\\n\" fresh-reader
+3beec198fe15406946b8b4331799b415fcae801824ab112dd36ee5ec0e353183
+[command-exit] 0
+[volume-name-reuse] assertion PASS: fresh-volume reader container creation succeeded
+[volume-name-reuse] assertion PASS: fresh-volume reader container ID was returned
+$ docker container inspect --format \{\{\ index\ .Config.Labels\ \"io.github.vivleon.ia-codyssey.volume-name-reuse-run\"\ \}\} ia-codyssey-name-reuse-empty-reader-20260812T080533Z-3334-21062-23454
+20260812T080533Z-3334-21062-23454
+[command-exit] 0
+[volume-name-reuse] assertion PASS: owned container exists: ia-codyssey-name-reuse-empty-reader-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] assertion PASS: container ownership label matches this run: ia-codyssey-name-reuse-empty-reader-20260812T080533Z-3334-21062-23454
+$ docker container start --attach ia-codyssey-name-reuse-empty-reader-20260812T080533Z-3334-21062-23454
+sentinel-absent=/evidence/sentinel.txt
+fresh-volume-empty=yes
+[command-exit] 0
+[volume-name-reuse] assertion PASS: fresh-volume emptiness check ran successfully
+[volume-name-reuse] assertion PASS: different fresh volume contained neither the sentinel nor any other data
+$ docker container inspect --format \{\{.State.ExitCode\}\} ia-codyssey-name-reuse-empty-reader-20260812T080533Z-3334-21062-23454
+0
+[command-exit] 0
+[volume-name-reuse] assertion PASS: container exit code was inspectable: ia-codyssey-name-reuse-empty-reader-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] assertion PASS: container completed successfully: ia-codyssey-name-reuse-empty-reader-20260812T080533Z-3334-21062-23454
+[volume-name-reuse] all behavioral assertions passed; EXIT trap will verify owned-resource cleanup
+[volume-name-reuse] cleanup starting for run 20260812T080533Z-3334-21062-23454
+$ docker container inspect --format \{\{\ index\ .Config.Labels\ \"io.github.vivleon.ia-codyssey.volume-name-reuse-run\"\ \}\} ia-codyssey-name-reuse-empty-reader-20260812T080533Z-3334-21062-23454
+20260812T080533Z-3334-21062-23454
+[command-exit] 0
+$ docker container rm --force ia-codyssey-name-reuse-empty-reader-20260812T080533Z-3334-21062-23454
+ia-codyssey-name-reuse-empty-reader-20260812T080533Z-3334-21062-23454
+$ docker container inspect --format \{\{\ index\ .Config.Labels\ \"io.github.vivleon.ia-codyssey.volume-name-reuse-run\"\ \}\} ia-codyssey-name-reuse-reader-20260812T080533Z-3334-21062-23454
+20260812T080533Z-3334-21062-23454
+[command-exit] 0
+$ docker container rm --force ia-codyssey-name-reuse-reader-20260812T080533Z-3334-21062-23454
+ia-codyssey-name-reuse-reader-20260812T080533Z-3334-21062-23454
+$ docker container inspect --format \{\{\ index\ .Config.Labels\ \"io.github.vivleon.ia-codyssey.volume-name-reuse-run\"\ \}\} ia-codyssey-name-reuse-writer-20260812T080533Z-3334-21062-23454
+20260812T080533Z-3334-21062-23454
+[command-exit] 0
+$ docker container rm --force ia-codyssey-name-reuse-writer-20260812T080533Z-3334-21062-23454
+ia-codyssey-name-reuse-writer-20260812T080533Z-3334-21062-23454
+$ docker volume inspect --format \{\{\ index\ .Labels\ \"io.github.vivleon.ia-codyssey.volume-name-reuse-run\"\ \}\} ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454
+20260812T080533Z-3334-21062-23454
+[command-exit] 0
+$ docker volume rm ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454
+ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454
+$ docker volume inspect --format \{\{\ index\ .Labels\ \"io.github.vivleon.ia-codyssey.volume-name-reuse-run\"\ \}\} ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+20260812T080533Z-3334-21062-23454
+[command-exit] 0
+$ docker volume rm ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+$ docker container inspect --format \{\{.Name\}\} ia-codyssey-name-reuse-writer-20260812T080533Z-3334-21062-23454
+
+Error response from daemon: No such container: ia-codyssey-name-reuse-writer-20260812T080533Z-3334-21062-23454
+[command-exit] 1
+[volume-name-reuse] cleanup confirmed container absent: ia-codyssey-name-reuse-writer-20260812T080533Z-3334-21062-23454
+$ docker container inspect --format \{\{.Name\}\} ia-codyssey-name-reuse-reader-20260812T080533Z-3334-21062-23454
+
+Error response from daemon: No such container: ia-codyssey-name-reuse-reader-20260812T080533Z-3334-21062-23454
+[command-exit] 1
+[volume-name-reuse] cleanup confirmed container absent: ia-codyssey-name-reuse-reader-20260812T080533Z-3334-21062-23454
+$ docker container inspect --format \{\{.Name\}\} ia-codyssey-name-reuse-empty-reader-20260812T080533Z-3334-21062-23454
+
+Error response from daemon: No such container: ia-codyssey-name-reuse-empty-reader-20260812T080533Z-3334-21062-23454
+[command-exit] 1
+[volume-name-reuse] cleanup confirmed container absent: ia-codyssey-name-reuse-empty-reader-20260812T080533Z-3334-21062-23454
+$ docker volume inspect --format \{\{.Name\}\} ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+
+Error response from daemon: get ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454: no such volume
+[command-exit] 1
+[volume-name-reuse] cleanup confirmed volume absent: ia-codyssey-name-reuse-stale-20260812T080533Z-3334-21062-23454
+$ docker volume inspect --format \{\{.Name\}\} ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454
+
+Error response from daemon: get ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454: no such volume
+[command-exit] 1
+[volume-name-reuse] cleanup confirmed volume absent: ia-codyssey-name-reuse-fresh-20260812T080533Z-3334-21062-23454
+$ docker container ls --all --filter label=io.github.vivleon.ia-codyssey.volume-name-reuse-run=20260812T080533Z-3334-21062-23454 --format \{\{.Names\}\}
+[command-exit] 0
+[volume-name-reuse] cleanup confirmed no run-labeled containers remain
+$ docker volume ls --filter label=io.github.vivleon.ia-codyssey.volume-name-reuse-run=20260812T080533Z-3334-21062-23454 --format \{\{.Name\}\}
+[command-exit] 0
+[volume-name-reuse] cleanup confirmed no run-labeled volumes remain
+[volume-name-reuse] cleanup summary: main_status=0 cleanup_status=0 final_status=0
+[volume-name-reuse] verification PASS: assertions and cleanup all succeeded

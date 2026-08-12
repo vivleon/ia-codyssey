@@ -1,0 +1,175 @@
+# Full image build/run verification recorded on 2026-08-12 (UTC).
+# The evidence container uses loopback port 18080 to avoid changing existing mission containers.
+
+$ wc -c Dockerfile app/index.html .dockerignore
+     669 Dockerfile
+     692 app/index.html
+      98 .dockerignore
+    1459 total
+
+$ find . -path './.git' -prune -o -type f -print0 | xargs -0 stat -f '%z' | awk '{sum += $1} END {print "repository working files bytes:", sum}'
+repository working files bytes: 156869
+
+$ docker build --no-cache --progress=plain -t ia-codyssey-web:1.0 .
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 708B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 138B done
+#3 DONE 0.0s
+
+#4 [internal] load build context
+#4 transferring context: 59B done
+#4 DONE 0.0s
+
+#5 [1/2] FROM docker.io/library/nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+#5 resolve docker.io/library/nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752 done
+#5 CACHED
+
+#6 [2/2] COPY app/ /usr/share/nginx/html/
+#6 DONE 0.0s
+
+#7 exporting to image
+#7 exporting layers 0.0s done
+#7 exporting manifest sha256:a201f9a3d604f916d65094976d4b1740b506b70ce00f0bcaf1874f6e305fef65 done
+#7 exporting config sha256:c485f787098fefff42432c41288a99edd3d2fd36ccac5e895c0cc11ac183ced9 done
+#7 exporting attestation manifest sha256:6a72ae95bed24152b16dc2f60a5358ced193bfa7932744610727122c0f0ce38c done
+#7 exporting manifest list sha256:cfd4ec96e122ae8bf215c04e2ab8da3c17a55ad51fe5d15666fef6b58941e516 done
+#7 naming to docker.io/library/ia-codyssey-web:1.0 done
+#7 unpacking to docker.io/library/ia-codyssey-web:1.0 done
+#7 DONE 0.1s
+
+$ docker images ia-codyssey-web:1.0
+WARNING: This output is designed for human readability. For machine-readable output, please use --format.
+IMAGE                 ID             DISK USAGE   CONTENT SIZE   EXTRA
+ia-codyssey-web:1.0   cfd4ec96e122         92MB           26MB
+
+$ docker run -d --name ia-codyssey-evidence-20260812 -p 127.0.0.1:18080:80 ia-codyssey-web:1.0
+daf034848ec92771ddcae303ecc65523cca196401426e13f44cb9dcb78b4ae21
+
+$ docker ps --filter name=ia-codyssey-evidence-20260812
+CONTAINER ID   IMAGE                 COMMAND                  CREATED        STATUS                                     PORTS                     NAMES
+daf034848ec9   ia-codyssey-web:1.0   "/docker-entrypoint.…"   1 second ago   Up Less than a second (health: starting)   127.0.0.1:18080->80/tcp   ia-codyssey-evidence-20260812
+
+$ docker port ia-codyssey-evidence-20260812
+80/tcp -> 127.0.0.1:18080
+
+$ curl --silent --show-error --include --max-time 10 http://127.0.0.1:18080/
+HTTP/1.1 200 OK
+Server: nginx/1.31.3
+Date: Wed, 12 Aug 2026 07:25:53 GMT
+Content-Type: text/html
+Content-Length: 692
+Last-Modified: Wed, 12 Aug 2026 07:12:44 GMT
+Connection: keep-alive
+ETag: "6a7c1cec-2b4"
+Accept-Ranges: bytes
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IA Codyssey Workstation</title>
+  <style>
+    body {
+      max-width: 760px;
+      margin: 80px auto;
+      padding: 24px;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+    }
+
+    .status {
+      padding: 12px 16px;
+      border: 1px solid #333;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>IA Codyssey Development Workstation</h1>
+  <p class="status">Custom NGINX Docker container is running successfully.</p>
+  <p>Repository: vivleon/ia-codyssey</p>
+</body>
+</html>
+
+$ for attempt in {1..45}; do health_state=$(docker inspect --format '{{.State.Health.Status}}' ia-codyssey-evidence-20260812); [ "$health_state" = healthy ] && break; sleep 1; done; [ "$health_state" = healthy ]
+
+$ docker inspect --format '{{.State.Health.Status}}' ia-codyssey-evidence-20260812
+healthy
+
+$ docker stats --no-stream ia-codyssey-evidence-20260812
+CONTAINER ID   NAME                            CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O     PIDS
+daf034848ec9   ia-codyssey-evidence-20260812   0.00%     7.414MiB / 7.653GiB   0.09%     1.55kB / 1.48kB   0B / 8.19kB   9
+
+$ docker stop ia-codyssey-evidence-20260812
+ia-codyssey-evidence-20260812
+
+$ docker inspect --format '{{.State.Status}}' ia-codyssey-evidence-20260812
+exited
+
+$ docker start ia-codyssey-evidence-20260812
+ia-codyssey-evidence-20260812
+
+$ for attempt in {1..45}; do state_health=$(docker inspect --format '{{.State.Status}} {{.State.Health.Status}}' ia-codyssey-evidence-20260812); [ "$state_health" = 'running healthy' ] && break; sleep 1; done; [ "$state_health" = 'running healthy' ]
+
+$ docker inspect --format '{{.State.Status}} {{.State.Health.Status}}' ia-codyssey-evidence-20260812
+running healthy
+
+$ curl --silent --show-error --include --max-time 10 http://127.0.0.1:18080/
+HTTP/1.1 200 OK
+Server: nginx/1.31.3
+Date: Wed, 12 Aug 2026 07:26:07 GMT
+Content-Type: text/html
+Content-Length: 692
+Last-Modified: Wed, 12 Aug 2026 07:12:44 GMT
+Connection: keep-alive
+ETag: "6a7c1cec-2b4"
+Accept-Ranges: bytes
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IA Codyssey Workstation</title>
+  <style>
+    body {
+      max-width: 760px;
+      margin: 80px auto;
+      padding: 24px;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+    }
+
+    .status {
+      padding: 12px 16px;
+      border: 1px solid #333;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>IA Codyssey Development Workstation</h1>
+  <p class="status">Custom NGINX Docker container is running successfully.</p>
+  <p>Repository: vivleon/ia-codyssey</p>
+</body>
+</html>
+
+$ docker rm -f ia-codyssey-evidence-20260812
+ia-codyssey-evidence-20260812

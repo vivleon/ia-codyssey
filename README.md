@@ -2,10 +2,17 @@
 
 터미널, Docker, Git 및 GitHub를 활용하여 재현 가능한 개발 워크스테이션을 구축하고 검증한 프로젝트입니다.
 
+| 과제 정보 | 내용 |
+|---|---|
+| 분야 | 입학연수 |
+| 구분 | 개발 입문 |
+| 학습시간 | 40시간 |
+| 미션 | 내 컴퓨터에 개발자용 작업실 꾸미기 |
+
 - Repository: `vivleon/ia-codyssey`
-- Base Image: `nginx:alpine`
+- Base Image: `nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752`
 - Custom Image: `ia-codyssey-web:1.0`
-- Port Mapping: `8080:80`, `8081:80`
+- Port Mapping: `8080:80`, `8081:80`, `8082:80` (bind mount)
 
 ---
 
@@ -47,11 +54,15 @@
 
 Docker 클라이언트는 macOS에서 실행되며, 실제 컨테이너는 Docker Desktop이 제공하는 Linux 환경에서 실행됩니다.
 
+위 환경은 2026년 8월 12일에 다시 확인했습니다. 현재 시스템에는 OrbStack이 설치되어 있지 않습니다. 서울캠퍼스 지침이 OrbStack 사용을 필수로 지정한 경우에는 제출 전에 OrbStack을 설치하고 `docker context show`, `docker version`, `docker info` 및 필수 실습 전체를 같은 런타임에서 다시 실행해야 합니다. 이 저장소는 존재하지 않는 OrbStack 실행 결과를 증거로 주장하지 않습니다.
+
 상세 환경 확인 결과:
 
 - [실행 환경 로그](logs/environment.txt)
 - [Docker 검증 로그](logs/docker-verification.txt)
 - [Git 검증 로그](logs/git-verification.txt)
+- [이미지 빌드·실행 원본 로그](logs/image-build-run.txt)
+- [자동 검증 로그](logs/automated-verification.txt)
 
 ---
 
@@ -79,17 +90,22 @@ Docker 클라이언트는 macOS에서 실행되며, 실제 컨테이너는 Docke
 - [x] Docker 컨테이너 실행·중지·목록 확인
 - [x] Docker 컨테이너 로그 확인
 - [x] Docker 리소스 사용량 확인
+- [x] 증거용 컨테이너와 이미지 삭제 결과 확인
 - [x] Dockerfile 직접 작성
 - [x] 커스텀 이미지 빌드
+- [x] 빌드 컨텍스트 최소화 및 베이스 이미지 digest 고정
 - [x] 포트 매핑 및 브라우저 접속
 - [x] 동일 이미지의 다중 컨테이너 실행
+- [x] 포트 충돌 재현·점유 프로세스 확인·대체 포트 해결
 - [x] 바인드 마운트 변경 전후 검증
 - [x] Docker 볼륨 영속성 검증
+- [x] Docker 볼륨 tar 백업·원본 삭제·새 볼륨 복원 검증
 - [x] Git 사용자 정보 설정
 - [x] Git 기본 브랜치 설정
 - [x] GitHub 원격 저장소 연결
-- [x] VSCode Source Control 연동
+- [ ] VSCode Source Control과 GitHub 로그인의 최종 clean 상태 증거
 - [x] 민감정보 노출 여부 확인
+- [x] 빌드→HTTP 200→health→바인드→볼륨 자동 검증
 
 ---
 
@@ -103,14 +119,21 @@ ia-codyssey/
 │   └── index.html
 ├── logs/
 │   ├── bind-mount.txt
+│   ├── automated-verification.txt
 │   ├── docker-operations.txt
 │   ├── docker-verification.txt
 │   ├── environment.txt
 │   ├── git-verification.txt
 │   ├── hello-world.txt
+│   ├── image-build-run.txt
+│   ├── image-tag-reference.txt
+│   ├── multi-container-ports.txt
+│   ├── port-conflict.txt
 │   ├── permissions.txt
 │   ├── terminal-practice.txt
 │   ├── ubuntu-container.txt
+│   ├── volume-backup-restore.txt
+│   ├── volume-name-reuse.txt
 │   └── volume-persistence.txt
 ├── practice/
 │   └── cli-demo/
@@ -119,13 +142,23 @@ ia-codyssey/
 ├── screenshots/
 │   ├── bind-mount-after.png
 │   ├── bind-mount-before.png
+│   ├── port-mapping-8080-address-bar.png
 │   ├── port-mapping-8080.png
-│   ├── port-mapping-8081.png
-│   └── vscode-github-link.png
+│   ├── port-mapping-8081-address-bar.png
+│   └── port-mapping-8081.png
+├── scripts/
+│   ├── verify-image-tag-reference.sh
+│   ├── verify-port-conflict.sh
+│   ├── verify-volume-backup.sh
+│   ├── verify-volume-name-reuse.sh
+│   └── verify.sh
+├── .dockerignore
 ├── .gitignore
 ├── Dockerfile
 └── README.md
 ```
+
+디렉토리는 빌드 입력, 실행 입력, 재현 절차, 결과 증거를 분리하는 기준으로 구성했습니다. `app/`은 이미지에 복사되는 빌드 입력, `bind-app/`은 런타임에 연결되는 호스트 입력, `scripts/`는 반복 가능한 검증 절차, `logs/`와 `screenshots/`는 각각 텍스트·시각 증거입니다. `.dockerignore`는 증거 파일과 Git 이력이 이미지 빌드 컨텍스트에 섞이지 않도록 차단합니다.
 
 ---
 
@@ -161,7 +194,7 @@ ls -la
 절대 경로는 파일시스템의 루트부터 대상까지 전체 위치를 나타냅니다.
 
 ```text
-/Users/hyeonjunna/codyssey/ia-codyssey/app/index.html
+/Users/[USER]/codyssey/ia-codyssey/app/index.html
 ```
 
 현재 작업 디렉토리가 변경되어도 항상 같은 대상을 가리킵니다.
@@ -175,6 +208,16 @@ ls -la
 ```
 
 현재 작업 디렉토리에 따라 가리키는 대상이 달라질 수 있습니다.
+
+### 5.3 호스트와 컨테이너에서 경로를 선택하는 기준
+
+| 위치 | 권장 기준 | 예시 | 이유 |
+|---|---|---|---|
+| 저장소 내부 명령 | 상대 경로 우선 | `./app/index.html` | 복제 위치나 사용자 계정이 달라도 재현 가능 |
+| 바인드 마운트의 호스트 source | 실행 시 절대 경로로 해석 | `"$(pwd)/bind-app"` | Docker가 호스트의 정확한 대상을 찾아야 함 |
+| 컨테이너 내부 destination | 이미지 설계에 고정한 절대 경로 | `/usr/share/nginx/html` | 컨테이너의 현재 디렉토리와 무관하게 같은 위치 사용 |
+
+README에 `/Users/<개인계정>/...`처럼 특정 PC에 종속된 경로를 고정하지 않습니다. 저장소 안에서는 상대 경로를 사용하고, Docker에 호스트 경로를 전달하는 순간에만 `$(pwd)` 또는 검증 스크립트가 계산한 `PROJECT_ROOT`로 절대 경로를 만듭니다.
 
 ---
 
@@ -209,6 +252,8 @@ rw-r--r--
 - 그룹: 읽기
 - 기타 사용자: 읽기
 
+정적 웹 파일을 `644`로 되돌린 목적은 소유자만 수정하고 NGINX를 포함한 다른 읽기 주체는 실행 권한 없이 읽을 수 있게 하기 위해서입니다.
+
 ### 6.2 디렉토리 권한 변경
 
 ```bash
@@ -229,6 +274,19 @@ rwxr-xr-x
 - 소유자: 읽기, 쓰기 및 접근
 - 그룹: 읽기 및 접근
 - 기타 사용자: 읽기 및 접근
+
+디렉토리를 `755`로 되돌린 목적은 소유자만 항목을 생성·삭제하고, 다른 사용자는 필요한 파일을 찾고 읽을 수 있도록 디렉토리 탐색(`x`)을 허용하기 위해서입니다.
+
+### 6.3 파일 유형별 권장 시작점
+
+| 대상 | 일반적 시작 권한 | 설명 |
+|---|---:|---|
+| 정적 HTML·소스·일반 설정 | `644` | 소유자 수정, 나머지 읽기 |
+| 실행 스크립트 | `755` | 소유자 수정, 필요한 사용자 실행 |
+| 일반 디렉토리 | `755` | 소유자 관리, 나머지 탐색·읽기 |
+| 비밀값이 있는 로컬 파일 | `600` | 소유자만 읽기·쓰기; Git에 커밋하지 않음 |
+
+이는 기본 예시이며 실제 서비스 계정과 공유 그룹에 맞춰 최소 권한 원칙으로 더 제한해야 합니다.
 
 변경 전후 결과:
 
@@ -253,7 +311,9 @@ docker version
 Docker Engine의 동작 여부와 실행 환경을 확인했습니다.
 
 ```bash
-docker info
+docker context show
+docker info --format \
+  'ServerVersion={{.ServerVersion}} OperatingSystem={{.OperatingSystem}} Architecture={{.Architecture}} CPUs={{.NCPU}}'
 ```
 
 주요 확인 결과:
@@ -301,48 +361,43 @@ This message shows that your installation appears to be working correctly.
 
 ## 9. Ubuntu 컨테이너
 
-Ubuntu 컨테이너를 생성하고 내부 셸에 진입했습니다.
+기존 컨테이너나 과거 데이터를 재사용하지 않도록 증거용 이름이 비어 있음을 확인한 뒤, digest로 고정한 Ubuntu 이미지에서 새 컨테이너를 생성했습니다.
 
 ```bash
-docker run -it --name ubuntu-practice ubuntu bash
-```
+docker ps -a \
+  --filter name=ia-ubuntu-evidence-20260812 \
+  --format '{{.Names}}'
 
-컨테이너 내부에서 다음 명령을 실행했습니다.
-
-```bash
-pwd
-ls -la
-echo "Hello from Ubuntu container"
-cat /etc/os-release
-whoami
-uname -a
-```
-
-`exit`를 입력하면 컨테이너의 메인 프로세스인 `bash`가 종료되므로 컨테이너도 `Exited` 상태가 됩니다.
-
-### 9.1 계속 실행되는 컨테이너
-
-```bash
 docker run -d \
-  --name ia-ubuntu-running \
-  ubuntu \
+  --name ia-ubuntu-evidence-20260812 \
+  ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb \
   sleep infinity
 ```
 
-실행 중인 컨테이너 내부에서 별도 명령을 실행했습니다.
+실행 중인 컨테이너 내부에서 별도 프로세스로 다음 명령을 실행했습니다.
 
 ```bash
-docker exec ia-ubuntu-running pwd
-docker exec ia-ubuntu-running ls -la /
-docker exec ia-ubuntu-running cat /etc/os-release
-docker exec ia-ubuntu-running whoami
+docker exec ia-ubuntu-evidence-20260812 pwd
+docker exec ia-ubuntu-evidence-20260812 ls -la /
+docker exec ia-ubuntu-evidence-20260812 \
+  echo "Hello from Ubuntu container"
+docker exec ia-ubuntu-evidence-20260812 cat /etc/os-release
+docker exec ia-ubuntu-evidence-20260812 whoami
 ```
 
-전체 실행 결과:
+검증이 끝난 증거용 컨테이너를 삭제했습니다.
+
+```bash
+docker rm -f ia-ubuntu-evidence-20260812
+```
+
+상호작용형 셸이 필요할 때는 `docker run -it --name ubuntu-practice ubuntu bash`를 사용할 수 있습니다. 이 경우 `bash`가 메인 프로세스이므로 `exit`로 셸을 끝내면 컨테이너도 종료됩니다.
+
+전체 생성, `exec` 및 정리 결과:
 
 - [Ubuntu 컨테이너 로그](logs/ubuntu-container.txt)
 
-### 9.2 run, attach, exec 차이
+### 9.1 run, attach, exec 차이
 
 | 명령 | 역할 |
 |---|---|
@@ -394,6 +449,8 @@ docker stats --no-stream
 - [Docker 운영 로그](logs/docker-operations.txt)
 - [Docker 종합 검증 로그](logs/docker-verification.txt)
 
+2026년 8월 12일 증거용 NGINX 컨테이너의 `docker stats --no-stream` 결과는 CPU `0.00%`, 메모리 `7.414 MiB`(호스트 제한의 `0.09%`)였습니다. 이는 유휴 상태 정적 파일 서버의 자원 사용량이 낮다는 한 시점의 측정값이며, 부하 테스트 결과나 최대 사용량을 의미하지는 않습니다.
+
 ### 10.1 이미지와 컨테이너의 차이
 
 Docker 이미지는 애플리케이션과 실행 환경을 포함한 읽기 전용 템플릿입니다.
@@ -402,16 +459,29 @@ Docker 컨테이너는 이미지를 기반으로 생성된 실행 인스턴스�
 
 하나의 이미지로 서로 독립된 여러 컨테이너를 생성할 수 있습니다.
 
+이미지 레이어는 생성된 뒤 읽기 전용이며 컨테이너의 변경은 별도 writable layer에 기록됩니다. 다만 `nginx:alpine` 같은 **태그는 변경 가능한 포인터**이므로 나중에 같은 태그를 pull하거나 build하면 다른 이미지 ID를 가리킬 수 있습니다. 이미 만들어진 컨테이너는 생성 당시 이미지 ID를 계속 사용하지만, 다음 빌드의 재현성을 보장하려면 이 프로젝트처럼 digest를 고정해야 합니다. [다중 컨테이너·포트 로그](logs/multi-container-ports.txt)에서 서로 다른 두 컨테이너가 같은 이미지 ID로 생성됐음을 확인할 수 있습니다.
+
+이 차이를 설명에만 의존하지 않고 고유한 로컬 alias를 NGINX digest에서 Ubuntu digest로 실제 변경해 검증했습니다. 같은 tag가 서로 다른 이미지 ID를 가리키게 된 뒤에도 먼저 생성한 컨테이너는 원래 NGINX 이미지 ID를 유지했고, 변경 후 생성한 컨테이너는 Ubuntu 이미지 ID를 기록했습니다. 검증 후 고유 alias와 label 소유 컨테이너만 삭제하고 두 pinned base image가 그대로인지 확인했습니다.
+
+```bash
+./scripts/verify-image-tag-reference.sh
+```
+
+- [이미지 태그 변경·기존 컨테이너 이미지 ID 유지 스크립트](scripts/verify-image-tag-reference.sh)
+- [이미지 태그 참조 변경 원본 로그](logs/image-tag-reference.txt)
+
 ---
 
 ## 11. 커스텀 Docker 이미지
 
-경량 NGINX 웹 서버 이미지인 `nginx:alpine`을 베이스 이미지로 선택했습니다.
+정적 파일 제공에 필요한 기능을 갖추면서 비교적 경량인 `nginx:alpine`을 선택했습니다. 태그가 가리키는 이미지가 나중에 바뀌는 문제를 막기 위해 2026년 8월 12일 검증한 멀티 아키텍처 manifest digest도 함께 고정했습니다.
 
 ### 11.1 Dockerfile
 
 ```dockerfile
-FROM nginx:alpine
+# 2026-08-12에 검증한 nginx:alpine 멀티 아키텍처 manifest digest입니다.
+# 태그의 가독성과 digest의 재현성을 함께 유지합니다.
+FROM nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
 
 LABEL org.opencontainers.image.title="ia-codyssey-web"
 LABEL org.opencontainers.image.description="Custom NGINX image for development workstation mission"
@@ -431,17 +501,30 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 | 항목 | 목적 |
 |---|---|
-| `FROM nginx:alpine` | 경량 NGINX 웹 서버 환경 사용 |
+| `FROM nginx:alpine@sha256:...` | 경량 NGINX를 사용하고 베이스 이미지 내용을 digest로 고정 |
 | `LABEL` | 이미지의 제목, 설명 및 출처 기록 |
-| `ENV` | 실행 환경 정보를 코드와 분리 |
+| `ENV` | 기본 실행 모드를 이미지 메타데이터에 기록(현재 정적 페이지 동작에는 영향 없음) |
 | `COPY` | 직접 작성한 정적 웹 페이지를 이미지에 포함 |
 | `EXPOSE 80` | 웹 서버가 사용하는 컨테이너 포트 명시 |
 | `HEALTHCHECK` | NGINX 웹 서버 응답 상태 점검 |
 
-### 11.3 이미지 빌드
+### 11.3 빌드 컨텍스트 최적화
+
+이미지에 필요한 `Dockerfile`과 `app/`만 전송하도록 `.dockerignore`를 허용 목록 방식으로 작성했습니다.
+
+```dockerignore
+**
+!Dockerfile
+!app/
+!app/**
+```
+
+2026년 8월 12일 측정 시 저장소 작업 파일은 총 `156,869B`였고 허용된 `Dockerfile`, `.dockerignore`, `app/index.html`의 파일 내용 합계는 `1,459B`였습니다. 캐시가 활성화된 증거 빌드에서 BuildKit은 증분 전송량을 `59B`로 표시했습니다. 이 전송량은 캐시 상태에 따라 달라질 수 있으며, 핵심은 `README`, 로그, 스크린샷, Git 이력 및 환경 파일이 빌드 컨텍스트에서 제외된다는 점입니다.
+
+### 11.4 이미지 빌드
 
 ```bash
-docker build -t ia-codyssey-web:1.0 .
+docker build --progress=plain -t ia-codyssey-web:1.0 .
 ```
 
 빌드 결과 확인:
@@ -450,7 +533,9 @@ docker build -t ia-codyssey-web:1.0 .
 docker images ia-codyssey-web
 ```
 
-### 11.4 컨테이너 실행
+2026년 8월 12일 측정 결과는 Docker의 `DISK USAGE` 약 `92MB`, `CONTENT SIZE` 약 `26MB`였습니다. 전체 빌드 출력, 이미지 ID와 크기, HTTP `200`, health, 중지 및 재시작 결과는 [이미지 빌드·실행 원본 로그](logs/image-build-run.txt)에 있습니다.
+
+### 11.5 컨테이너 실행
 
 ```bash
 docker run -d \
@@ -458,6 +543,8 @@ docker run -d \
   -p 8080:80 \
   ia-codyssey-web:1.0
 ```
+
+`HEALTHCHECK`의 기본 interval이 30초이므로 실행 직후 상태는 `starting`일 수 있습니다. 원본 로그와 자동 검증 스크립트는 제한 시간 안에서 `healthy`가 될 때까지 기다린 뒤 결과를 판정합니다.
 
 ---
 
@@ -494,14 +581,34 @@ docker port ia-codyssey-web-8080
 웹 응답 확인:
 
 ```bash
-curl http://localhost:8080
+curl --silent --show-error --include http://localhost:8080
 ```
 
-### 12.1 8080 포트 접속 증거
+응답 헤더의 `HTTP/1.1 200 OK`를 확인해야 단순 HTML 출력뿐 아니라 HTTP 상태까지 검증할 수 있습니다.
 
-![Port Mapping 8080](screenshots/port-mapping-8080.png)
+### 12.1 네트워크 네임스페이스와 공개 범위
 
-### 12.2 8081 포트 접속 증거
+Linux 컨테이너는 네트워크 네임스페이스를 사용해 호스트와 분리된 인터페이스, IP 주소, 라우팅 테이블 및 포트 공간을 가집니다. 따라서 컨테이너 안의 `80` 포트는 호스트의 `80` 또는 `8080` 포트와 자동으로 연결되지 않습니다. `-p HOST:CONTAINER`는 호스트에 전달 규칙을 만들어 이 경계를 명시적으로 연결합니다. PID·mount 네임스페이스도 각각 프로세스 목록과 파일시스템 보기를 격리하며, 이는 격리의 기반이지 완전한 보안 경계 하나만으로 충분하다는 뜻은 아닙니다.
+
+공개 범위도 구분해야 합니다.
+
+```bash
+# 로컬 컴퓨터에서만 접속: 개발·검증 기본값
+docker run -p 127.0.0.1:8080:80 ...
+
+# 모든 호스트 인터페이스에 공개될 수 있음
+docker run -p 8080:80 ...
+```
+
+외부 공개가 필요하지 않다면 `127.0.0.1`에 바인딩합니다. 운영 환경에서는 방화벽, 보안 그룹, 리버스 프록시, TLS, 인증·인가를 함께 적용하고 필요한 포트만 노출해야 합니다. 컨테이너를 privileged 모드로 실행하거나 Docker 소켓을 마운트하는 방식은 권한을 크게 넓히므로 이 실습에서는 사용하지 않습니다.
+
+### 12.2 8080 포트 접속 증거
+
+![Port Mapping 8080 with address bar](screenshots/port-mapping-8080-address-bar.png)
+
+주소창의 `127.0.0.1:8080`과 응답 화면을 한 이미지에서 확인할 수 있습니다. 개인정보를 포함할 수 있는 북마크, 개인 프로필, 메뉴바 및 Dock은 캡처하지 않았습니다. 페이지 영역만 확인하려면 [8080 페이지 전용 이미지](screenshots/port-mapping-8080.png)를, HTTP 상태까지 교차 확인하려면 [이미지 빌드·실행 원본 로그](logs/image-build-run.txt)를 봅니다.
+
+### 12.3 8081 포트 접속 증거
 
 동일한 이미지로 두 번째 컨테이너를 실행했습니다.
 
@@ -512,9 +619,9 @@ docker run -d \
   ia-codyssey-web:1.0
 ```
 
-![Port Mapping 8081](screenshots/port-mapping-8081.png)
+![Port Mapping 8081 with address bar](screenshots/port-mapping-8081-address-bar.png)
 
-동일한 이미지에서 생성한 컨테이너를 서로 다른 호스트 포트로 동시에 실행할 수 있음을 확인했습니다.
+주소창의 `127.0.0.1:8081`과 응답 화면을 한 이미지에서 확인할 수 있습니다. [8081 페이지 전용 이미지](screenshots/port-mapping-8081.png)도 보조 증거로 남겼습니다. [다중 컨테이너·포트 원본 로그](logs/multi-container-ports.txt)에서 서로 다른 컨테이너 ID, 동일한 이미지 ID, `8080`/`8081` 포트 매핑, 두 URL의 HTTP `200` 및 동일한 응답 SHA-256을 함께 확인할 수 있습니다.
 
 ---
 
@@ -527,7 +634,15 @@ docker run -d \
   --name ia-codyssey-bind \
   -p 8082:80 \
   -v "$(pwd)/bind-app:/usr/share/nginx/html:ro" \
-  nginx:alpine
+  nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+```
+
+마운트 유형과 연결 대상을 확인하는 유효한 명령은 다음과 같습니다.
+
+```bash
+docker inspect --format \
+  '{{range .Mounts}}{{.Type}} {{.Source}} -> {{.Destination}}{{end}}' \
+  ia-codyssey-bind
 ```
 
 호스트 파일을 변경하기 전의 내용:
@@ -554,6 +669,8 @@ Bind Mount Test - AFTER
 
 호스트 파일 변경이 실행 중인 컨테이너에 즉시 반영되는 것을 확인했습니다.
 
+재검증에서는 기존 실습 자원을 건드리지 않기 위해 `ia-codyssey-bind-evidence-20260812`와 loopback 포트 `18082`를 사용했습니다. 변경 전후 컨테이너 ID와 `StartedAt`이 동일하므로 재시작 없이 호스트 파일 변경만 반영됐음을 확인할 수 있습니다. 로그의 호스트 사용자명은 `[USER]`로 마스킹했습니다.
+
 전체 검증 결과:
 
 - [바인드 마운트 로그](logs/bind-mount.txt)
@@ -574,7 +691,7 @@ docker volume create ia-codyssey-data
 docker run -d \
   --name ia-volume-test-1 \
   -v ia-codyssey-data:/data \
-  ubuntu \
+  ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb \
   sleep infinity
 ```
 
@@ -603,7 +720,7 @@ docker rm -f ia-volume-test-1
 docker run -d \
   --name ia-volume-test-2 \
   -v ia-codyssey-data:/data \
-  ubuntu \
+  ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb \
   sleep infinity
 ```
 
@@ -613,13 +730,21 @@ docker run -d \
 docker exec ia-volume-test-2 cat /data/result.txt
 ```
 
+볼륨 마운트와 두 번째 컨테이너의 읽기 전용 연결은 다음 명령으로 확인할 수 있습니다.
+
+```bash
+docker inspect --format \
+  '{{range .Mounts}}{{.Type}} Name={{.Name}} {{.Source}} -> {{.Destination}} RW={{.RW}}{{end}}' \
+  ia-volume-test-2
+```
+
 결과:
 
 ```text
 Persistent data created by container 1
 ```
 
-첫 번째 컨테이너가 삭제된 후에도 Docker 볼륨에 저장된 데이터가 유지됨을 확인했습니다.
+첫 번째 컨테이너가 삭제된 후에도 Docker 볼륨에 저장된 데이터가 유지됨을 확인했습니다. 재검증은 과거 데이터가 결과에 섞이지 않도록 존재하지 않는 이름임을 먼저 확인한 새 볼륨으로 시작하고, 검증 후 증거용 컨테이너와 볼륨을 삭제했습니다.
 
 전체 검증 결과:
 
@@ -635,6 +760,44 @@ Persistent data created by container 1
 | 관리 주체 | 사용자 | Docker |
 | 주요 사례 | 개발 중 소스코드 연결 | 데이터베이스 데이터 저장 |
 
+### 14.2 볼륨 백업·복구 대안과 실제 검증
+
+Docker 볼륨은 컨테이너 삭제와 분리되어 있지만 볼륨 자체 삭제, 디스크 장애 또는 런타임 초기화까지 막아 주는 백업은 아닙니다. 이 저장소에서는 읽기 전용으로 연결한 원본 볼륨을 tar 파일로 백업하고, 원본 컨테이너와 원본 볼륨을 실제로 삭제한 다음 **새 빈 볼륨**에 복원했습니다. 별도 읽기 전용 컨테이너에서 내용과 SHA-256이 원본과 같은지도 확인했습니다.
+
+```bash
+./scripts/verify-volume-backup.sh
+```
+
+실행 스크립트는 `mktemp`로 만든 호스트 디렉토리에 백업 파일을 두고, 고유한 label이 일치하는 자신 소유의 컨테이너·볼륨만 삭제합니다.
+
+- [볼륨 백업·복구 스크립트](scripts/verify-volume-backup.sh)
+- [볼륨 백업·원본 삭제·복원 원본 로그](logs/volume-backup-restore.txt)
+
+쓰기 작업이 계속되는 데이터베이스는 파일별 시점이 어긋날 수 있으므로 백업 전에 쓰기를 중지하거나 데이터베이스 전용 dump/snapshot 기능을 사용해야 합니다. 실제 운영 백업은 암호화하고 접근 권한을 제한한 외부 스토리지에 복제하며, 체크섬 확인과 정기 복원 훈련까지 포함해야 합니다.
+
+### 14.3 기존 볼륨 이름을 재사용할 때의 주의점
+
+`docker volume create <기존이름>`은 실패하지 않고 기존 볼륨 이름을 그대로 반환할 수 있어 과거 데이터가 새 검증 결과처럼 보일 수 있습니다. 다음처럼 먼저 검사하고, 평가 증거에는 실행별 고유 이름을 사용합니다.
+
+```bash
+docker volume inspect ia-codyssey-data
+docker ps -a --filter volume=ia-codyssey-data
+
+# 기존 데이터의 용도를 확인한 뒤, 새 이름으로 별도 검증
+docker volume create ia-codyssey-data-<RUN_ID>
+```
+
+기존 볼륨은 소유자와 데이터 보존 정책을 확인하기 전에는 삭제하지 않습니다.
+
+다음 검증은 고유 볼륨에 sentinel을 쓴 뒤 같은 이름으로 `docker volume create`를 다시 실행했습니다. 두 번의 `CreatedAt`·`Mountpoint`·driver가 같고 sentinel도 남아 있어 기존 볼륨 재사용을 실제로 확인했습니다. 다른 고유 이름의 새 볼륨은 비어 있음을 별도 컨테이너로 확인했습니다.
+
+```bash
+./scripts/verify-volume-name-reuse.sh
+```
+
+- [볼륨 이름 재사용 위험 검증 스크립트](scripts/verify-volume-name-reuse.sh)
+- [동일 이름 볼륨 재사용·stale data 원본 로그](logs/volume-name-reuse.txt)
+
 ---
 
 ## 15. Git 및 GitHub 연동
@@ -647,6 +810,13 @@ git config --global init.defaultBranch main
 ```
 
 보안을 위해 이메일 주소는 공개 로그와 README에 표시하지 않았습니다.
+
+전체 설정을 확인할 때는 실제 명령과 마스킹 과정을 함께 기록합니다.
+
+```bash
+git --no-pager config --list | \
+  sed -E 's/^(user\.email=).*/\1[MASKED]/'
+```
 
 현재 브랜치 확인:
 
@@ -676,22 +846,27 @@ Git 설정 및 원격 저장소 확인 결과:
 
 - [Git 검증 로그](logs/git-verification.txt)
 
+브랜치와 작업 트리 상태는 다음 명령으로 별도 확인합니다.
+
+```bash
+git branch --show-current
+git remote -v
+git status
+git rev-parse HEAD
+git rev-parse origin/main
+```
+
 ### 15.1 Git과 GitHub의 차이
 
 Git은 로컬 컴퓨터에서 소스코드의 변경 이력과 브랜치를 관리하는 버전 관리 도구입니다.
 
 GitHub는 Git 저장소를 원격으로 보관하고 협업, 코드 리뷰, 이슈 관리 및 접근 제어 기능을 제공하는 플랫폼입니다.
 
-### 15.2 VSCode Source Control 연동
+### 15.2 VSCode 및 GitHub 최종 증거
 
-VSCode에서 다음 사항을 확인했습니다.
+2026년 8월 12일 VSCode에서 이 저장소를 열고 Source Control이 `main` 브랜치와 현재 작업 폴더를 인식하는지 확인했습니다. Accounts 메뉴에서 `vivleon (GitHub)` 로그인도 확인했습니다. 계정 메뉴에는 다른 개인 계정도 함께 표시되므로 해당 화면은 공개 저장소에 넣지 않고, 민감정보가 없는 최종 clean 상태만 별도 캡처합니다.
 
-- Repository: `ia-codyssey`
-- Branch: `main`
-- Source Control 변경 파일 인식
-- Git 저장소 정상 연결
-
-![VSCode GitHub Link](screenshots/vscode-github-link.png)
+공개 HTTPS 저장소에 대한 `git remote -v`나 `git ls-remote` 성공은 원격 주소와 읽기 접근만 증명할 뿐 푸시 권한을 증명하지 않습니다. 따라서 아래 원격 푸시 원본 로그와 최종 커밋이 표시된 GitHub 원격 화면을 직접 증거로 사용합니다.
 
 ---
 
@@ -788,6 +963,49 @@ cat /etc/os-release
 
 ---
 
+### 16.3 호스트 포트가 이미 사용 중이라 컨테이너 실행 실패
+
+#### 문제
+
+첫 번째 NGINX 컨테이너가 사용 중인 같은 loopback 포트로 두 번째 컨테이너를 실행해 다음 오류와 종료 코드 `125`를 재현했습니다.
+
+```text
+Bind for 127.0.0.1:<PORT> failed: port is already allocated
+```
+
+#### 원인 가설
+
+Docker 또는 다른 호스트 프로세스가 해당 host port를 이미 LISTEN하고 있어 두 번째 publish 규칙을 만들 수 없다고 판단했습니다.
+
+#### 확인
+
+macOS에서는 `lsof`, Docker에서는 publish 필터와 `docker port`를 함께 사용합니다. Linux 호스트라면 `ss -ltnp` 또는 `netstat -ltnp`를 대안으로 사용할 수 있습니다.
+
+```bash
+lsof -nP -iTCP:<PORT> -sTCP:LISTEN
+docker ps --filter publish=<PORT>
+docker port <CONTAINER>
+```
+
+실제 로그에서는 `com.docke` 프로세스가 선택 포트를 LISTEN했고, `docker ps`가 그 포트를 publish한 정확한 컨테이너를 보여 줬습니다.
+
+#### 해결
+
+먼저 점유 컨테이너의 용도를 확인합니다. 불필요하고 삭제 권한이 있는 자원일 때만 `docker stop`/`docker rm`으로 정리합니다. 이 검증에서는 기존 서비스를 중단하지 않고 새 빈 포트를 찾아 두 번째 컨테이너만 다른 포트로 다시 생성했습니다.
+
+```bash
+docker run -p 127.0.0.1:<ALTERNATE_PORT>:80 ...
+```
+
+#### 결과
+
+원래 포트의 컨테이너가 계속 실행 중인 상태에서 원래 URL과 대체 URL이 모두 HTTP `200`을 반환했습니다. 마지막에는 실행별 label을 확인한 증거용 컨테이너 두 개를 `docker rm -f`로 삭제하고, 증거용 이미지 태그를 `docker image rm`으로 정리했으며 종료 코드 `0`을 확인했습니다.
+
+- [포트 충돌 재현 스크립트](scripts/verify-port-conflict.sh)
+- [포트 점유 확인·충돌·대체 포트·컨테이너/이미지 삭제 원본 로그](logs/port-conflict.txt)
+
+---
+
 ## 17. 보안 및 개인정보 보호
 
 다음 민감정보가 저장소, 로그 및 스크린샷에 포함되지 않도록 점검했습니다.
@@ -818,6 +1036,16 @@ build/
 
 Git 이력에서 해당 정보를 제거하고, 노출된 자격 증명을 폐기한 뒤 재발급해야 합니다.
 
+2026년 8월 12일에는 브라우저 전체 화면 캡처 네 장을 페이지 영역 전용 이미지로 교체하고, 포트 증거는 별도 격리 브라우저 창에서 주소창과 응답만 보이도록 다시 캡처했습니다. 개인 북마크·개인 프로필·메뉴바·알림 배지·Dock은 포함하지 않았습니다. 바인드 마운트와 신규 검증 로그의 호스트 사용자명도 `[USER]`로 마스킹했습니다. 초기 미커밋 상태를 보여주던 VSCode 이미지는 최종 연동 증거에서 제외했습니다.
+
+대표적인 토큰·개인키 패턴은 다음과 같이 추가 확인할 수 있습니다. 패턴 검사는 보조 수단이며 실제 파일 검토와 자격 증명 폐기 절차를 대체하지 않습니다.
+
+```bash
+git grep -nEI \
+  '(ghp_|github_pat_|AKIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY|password[[:space:]]*[:=])' \
+  -- . ':!README.md' ':!logs/*'
+```
+
 ---
 
 ## 18. 재현 방법
@@ -829,10 +1057,66 @@ git clone https://github.com/vivleon/ia-codyssey.git
 cd ia-codyssey
 ```
 
+### 18.1 권장: 자동 검증
+
+Docker Engine이 실행 중인 환경에서 다음 한 줄로 빌드, HTTP `200`, health, 바인드 마운트 변경 및 볼륨 영속성을 검증합니다.
+
+```bash
+./scripts/verify.sh
+```
+
+스크립트는 실행마다 고유한 이미지·컨테이너·볼륨 이름과 loopback 임시 포트를 사용합니다. 자원 소유권을 label로 확인하고, 성공·실패·중단 시 자신이 생성한 자원만 정리합니다. 성공하면 `all checks passed; exiting with status 0`을 출력하고 종료 코드 `0`을 반환합니다.
+
+- [자동 검증 원본 로그](logs/automated-verification.txt)
+
+### 18.2 포트 충돌 진단 재현
+
+기존 자원을 건드리지 않는 고유 컨테이너와 임시 loopback 포트로 충돌, 점유 주체, 대체 포트 해결 및 정리를 검증합니다.
+
+```bash
+./scripts/verify-port-conflict.sh
+```
+
+- [포트 충돌 원본 로그](logs/port-conflict.txt)
+
+### 18.3 볼륨 백업·복원 재현
+
+원본 볼륨 작성, tar 백업, 원본 삭제, 새 볼륨 복원, 내용·SHA-256 비교 및 정리를 검증합니다.
+
+```bash
+./scripts/verify-volume-backup.sh
+```
+
+- [볼륨 백업·복원 원본 로그](logs/volume-backup-restore.txt)
+
+### 18.4 태그 참조 변경 재현
+
+고유 로컬 tag의 대상 이미지 ID를 실제로 바꾸고, 변경 전 생성한 컨테이너가 원래 이미지 ID를 유지하는지 확인합니다.
+
+```bash
+./scripts/verify-image-tag-reference.sh
+```
+
+- [이미지 태그 참조 변경 원본 로그](logs/image-tag-reference.txt)
+
+### 18.5 볼륨 이름 재사용 위험 재현
+
+같은 이름의 `docker volume create`가 기존 볼륨과 데이터를 재사용하는 반면, 다른 고유 이름의 새 볼륨은 비어 있음을 확인합니다.
+
+```bash
+./scripts/verify-volume-name-reuse.sh
+```
+
+- [볼륨 이름 재사용 원본 로그](logs/volume-name-reuse.txt)
+
+### 18.6 수동 실행
+
+고정 이름의 기존 컨테이너가 없어야 합니다. 이미 존재한다면 해당 컨테이너의 용도를 확인한 뒤 사용자가 직접 다른 이름·포트를 선택하십시오.
+
 커스텀 이미지를 빌드합니다.
 
 ```bash
-docker build -t ia-codyssey-web:1.0 .
+docker build --progress=plain -t ia-codyssey-web:1.0 .
 ```
 
 웹 서버 컨테이너를 실행합니다.
@@ -840,14 +1124,14 @@ docker build -t ia-codyssey-web:1.0 .
 ```bash
 docker run -d \
   --name ia-codyssey-web-8080 \
-  -p 8080:80 \
+  -p 127.0.0.1:8080:80 \
   ia-codyssey-web:1.0
 ```
 
 웹 서버 응답을 확인합니다.
 
 ```bash
-curl http://localhost:8080
+curl --silent --show-error --include http://127.0.0.1:8080/
 ```
 
 브라우저 접속 주소:
@@ -901,12 +1185,50 @@ Git은 로컬 버전 관리 도구이며, GitHub는 Git 저장소의 원격 보�
 | hello-world 실행 | [hello-world.txt](logs/hello-world.txt) |
 | Ubuntu 컨테이너 | [ubuntu-container.txt](logs/ubuntu-container.txt) |
 | Docker 운영 | [docker-operations.txt](logs/docker-operations.txt) |
-| Docker 종합 검증 | [docker-verification.txt](logs/docker-verification.txt) |
+| Docker 요약(보조 자료) | [docker-verification.txt](logs/docker-verification.txt) |
+| 이미지 빌드·실행·중지·재시작 | [image-build-run.txt](logs/image-build-run.txt) |
+| 이미지 tag 대상 변경·기존 컨테이너 ID 유지 | [image-tag-reference.txt](logs/image-tag-reference.txt) |
+| 동일 이미지의 8080·8081 다중 컨테이너 | [multi-container-ports.txt](logs/multi-container-ports.txt) |
+| 포트 충돌·점유 확인·대체 포트·정리 | [port-conflict.txt](logs/port-conflict.txt) |
+| 자동 종합 검증(`exit 0`) | [automated-verification.txt](logs/automated-verification.txt) |
 | 바인드 마운트 | [bind-mount.txt](logs/bind-mount.txt) |
 | 볼륨 영속성 | [volume-persistence.txt](logs/volume-persistence.txt) |
+| 볼륨 백업·원본 삭제·새 볼륨 복원 | [volume-backup-restore.txt](logs/volume-backup-restore.txt) |
+| 동일 이름 볼륨 재사용·stale data 위험 | [volume-name-reuse.txt](logs/volume-name-reuse.txt) |
 | Git 설정 | [git-verification.txt](logs/git-verification.txt) |
-| 8080 접속 화면 | [port-mapping-8080.png](screenshots/port-mapping-8080.png) |
-| 8081 접속 화면 | [port-mapping-8081.png](screenshots/port-mapping-8081.png) |
+| 8080 주소창·접속 화면 | [port-mapping-8080-address-bar.png](screenshots/port-mapping-8080-address-bar.png) |
+| 8081 주소창·접속 화면 | [port-mapping-8081-address-bar.png](screenshots/port-mapping-8081-address-bar.png) |
+| 8080·8081 페이지 전용 보조 화면 | [8080](screenshots/port-mapping-8080.png), [8081](screenshots/port-mapping-8081.png) |
 | 바인드 마운트 변경 전 | [bind-mount-before.png](screenshots/bind-mount-before.png) |
 | 바인드 마운트 변경 후 | [bind-mount-after.png](screenshots/bind-mount-after.png) |
-| VSCode 연동 | [vscode-github-link.png](screenshots/vscode-github-link.png) |
+
+---
+
+## 21. 평가 기준 대응표
+
+| 평가 항목 | 설계 결정 | 검증 명령 | 증거 | 확인 결과 |
+|---|---|---|---|---|
+| 문제 이해 | 호스트와 컨테이너의 네트워크·파일시스템 격리를 포트와 마운트로 연결 | `docker port`, `curl --include`, `docker inspect` | [빌드·실행 로그](logs/image-build-run.txt), [바인드 로그](logs/bind-mount.txt) | 포트 연결 및 HTTP 200, bind 마운트 확인 |
+| 해결 접근 | 정적 페이지 요구에 맞는 NGINX Alpine 이미지와 healthcheck 사용 | `docker build --progress=plain`, health 대기 후 `docker inspect` | [빌드·실행 로그](logs/image-build-run.txt) | 빌드 성공 및 `healthy` |
+| 정확성 | 모든 증거 명령을 실행 가능한 원형으로 기록하고 쓰기·마운트 결과를 직접 확인 | `docker exec ... sh -c`, `docker inspect --format` | [Ubuntu 로그](logs/ubuntu-container.txt), [볼륨 로그](logs/volume-persistence.txt) | 기록한 명령과 출력 일치 |
+| 효율성 | 베이스 digest 고정, Alpine 사용, 허용 목록 `.dockerignore` | `wc -c`, `docker images`, build context, `docker stats --no-stream` | [빌드·실행 로그](logs/image-build-run.txt) | 허용 파일 `1,459B`, 해당 캐시 빌드 증분 전송 `59B`, content size 약 `26MB`, 유휴 메모리 약 `7.4MiB` |
+| 결과 검증 | 한 번의 스크립트로 HTTP, health, bind 변경, 컨테이너 간 볼륨 보존을 검증 | `./scripts/verify.sh` | [자동 검증 로그](logs/automated-verification.txt) | 모든 검사 통과, 종료 코드 `0` |
+
+---
+
+## 22. 동료평가 설명 요약
+
+- `nginx:alpine` 선택 이유: 정적 페이지 제공 요구에 충분하고 비교적 경량이며, digest를 함께 기록해 태그 변경에 따른 빌드 편차를 줄였습니다.
+- 포트 매핑 이유: 컨테이너 네트워크가 호스트와 격리되어 있으므로 호스트 요청을 컨테이너의 80번 포트로 전달해야 합니다.
+- 바인드 마운트와 볼륨의 차이: 바인드는 호스트 파일 변경을 즉시 반영하는 데, 볼륨은 컨테이너 수명과 분리된 데이터 보존에 적합합니다.
+- `attach`와 `exec`의 차이: `attach`는 메인 프로세스 입출력에 연결하고, `exec`는 실행 중인 컨테이너에 별도 프로세스를 추가합니다.
+- 영속성 검증 방법: 새 볼륨의 첫 컨테이너에서 파일을 쓴 뒤 컨테이너를 삭제하고, 같은 볼륨을 읽기 전용으로 연결한 두 번째 컨테이너에서 동일한 값을 확인했습니다.
+- 재현성 확보 방법: 베이스 digest, Dockerfile, 최소 빌드 컨텍스트, 고유 자원을 사용하는 자동 검증 및 실제 원본 로그를 함께 관리합니다.
+- 태그 불변성 검증: 고유 tag의 대상을 NGINX에서 Ubuntu로 실제 변경했지만 기존 컨테이너는 원래 이미지 ID를 유지했습니다.
+- 볼륨 이름 주의: 같은 이름으로 다시 `docker volume create`하면 초기화되지 않고 기존 데이터가 남으므로 고유 이름과 사전 검사가 필요합니다.
+
+---
+
+## 23. 환경별 추가 확인
+
+서울캠퍼스 지침에서 OrbStack이 필수라면 OrbStack 설치 후 모든 Docker 증거를 같은 런타임으로 재생성해야 합니다. 현재 저장된 실측 결과는 Docker Desktop 환경이며, 런타임을 바꾸지 않은 상태에서 OrbStack 결과라고 주장하지 않습니다.

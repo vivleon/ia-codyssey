@@ -1,0 +1,114 @@
+=== Docker image tag reference verification ===
+[image-tag-reference] UTC start: 2026-08-12T08:05:41Z
+[image-tag-reference] run id: 20260812t080541z-3613-18955-28948
+[image-tag-reference] unique mutable alias: ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable
+[image-tag-reference] original container: ia-codyssey-tag-original-20260812t080541z-3613-18955-28948
+[image-tag-reference] retagged container: ia-codyssey-tag-retagged-20260812t080541z-3613-18955-28948
+[image-tag-reference] pinned nginx input: nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+[image-tag-reference] pinned ubuntu input: ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+
+=== Docker engine and immutable inputs ===
+$ docker version --format Client=\{\{.Client.Version\}\}\ Server=\{\{.Server.Version\}\}
+Client=29.3.1 Server=29.3.1
+[image-tag-reference] base image already local: nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+[image-tag-reference] base image already local: ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+$ docker image inspect --format \{\{.Id\}\} nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+$ docker image inspect --format ID=\{\{.Id\}\}\ RepoDigests=\{\{json\ .RepoDigests\}\} nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+ID=sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752 RepoDigests=["nginx@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752"]
+[image-tag-reference] PASS: nginx metadata contains the pinned digest: found nginx@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+$ docker image inspect --format \{\{.Id\}\} ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+$ docker image inspect --format ID=\{\{.Id\}\}\ RepoDigests=\{\{json\ .RepoDigests\}\} ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+ID=sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb RepoDigests=["ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb"]
+[image-tag-reference] PASS: Ubuntu metadata contains the pinned digest: found ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+[image-tag-reference] PASS: the two immutable input IDs differ: sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752 != sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+
+=== Collision refusal for run-owned names ===
+$ docker image inspect ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable
+[image-tag-reference] PASS: image name is unused: ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable
+$ docker container inspect ia-codyssey-tag-original-20260812t080541z-3613-18955-28948
+[image-tag-reference] PASS: container name is unused: ia-codyssey-tag-original-20260812t080541z-3613-18955-28948
+$ docker container inspect ia-codyssey-tag-retagged-20260812t080541z-3613-18955-28948
+[image-tag-reference] PASS: container name is unused: ia-codyssey-tag-retagged-20260812t080541z-3613-18955-28948
+
+=== Point the unique alias at pinned nginx ===
+$ docker image tag nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752 ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable
+$ docker image inspect --format \{\{.Id\}\} ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable
+sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+[image-tag-reference] PASS: initial alias resolves to the pinned nginx image ID: sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+
+=== Create a container while the alias means nginx ===
+$ docker container create --name ia-codyssey-tag-original-20260812t080541z-3613-18955-28948 --label io.github.vivleon.ia-codyssey.image-tag-reference-run=20260812t080541z-3613-18955-28948 --label io.github.vivleon.ia-codyssey.image-tag-reference-role=original-nginx ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable
+90b44b54f8d09fef59969bd6666a54281c612666d610467f7511709e1accd457
+$ docker container inspect --format Name=\{\{.Name\}\}\ ConfiguredImage=\{\{.Config.Image\}\}\ ImageID=\{\{.Image\}\}\ RunLabel=\{\{index\ .Config.Labels\ \"io.github.vivleon.ia-codyssey.image-tag-reference-run\"\}\}\ Role=\{\{index\ .Config.Labels\ \"io.github.vivleon.ia-codyssey.image-tag-reference-role\"\}\} ia-codyssey-tag-original-20260812t080541z-3613-18955-28948
+Name=/ia-codyssey-tag-original-20260812t080541z-3613-18955-28948 ConfiguredImage=ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable ImageID=sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752 RunLabel=20260812t080541z-3613-18955-28948 Role=original-nginx
+[image-tag-reference] PASS: original container records the alias used at creation: found ConfiguredImage=ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable
+[image-tag-reference] PASS: original container carries this run ownership label: found RunLabel=20260812t080541z-3613-18955-28948
+$ docker container inspect --format \{\{.Image\}\} ia-codyssey-tag-original-20260812t080541z-3613-18955-28948
+sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+[image-tag-reference] PASS: original container records the nginx image ID: sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+
+=== Repoint the same alias at pinned Ubuntu ===
+$ docker image tag ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable
+$ docker image inspect --format \{\{.Id\}\} ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable
+sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+[image-tag-reference] PASS: repointed alias resolves to the pinned Ubuntu image ID: sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+[image-tag-reference] PASS: the same tag name now resolves to a different image ID: sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb != sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+
+=== Prove the existing container did not follow the mutable alias ===
+$ docker container inspect --format ConfiguredImage=\{\{.Config.Image\}\}\ StableImageID=\{\{.Image\}\} ia-codyssey-tag-original-20260812t080541z-3613-18955-28948
+ConfiguredImage=ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable StableImageID=sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+[image-tag-reference] PASS: existing container still records the original nginx image ID: found StableImageID=sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+$ docker container inspect --format \{\{.Image\}\} ia-codyssey-tag-original-20260812t080541z-3613-18955-28948
+sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+[image-tag-reference] PASS: original container image ID is unchanged after retagging: sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+[image-tag-reference] PASS: original container image ID differs from the alias current target: sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752 != sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+$ docker image inspect --format OriginalImageID=\{\{.Id\}\}\ RepoDigests=\{\{json\ .RepoDigests\}\} sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+OriginalImageID=sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752 RepoDigests=["nginx@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752"]
+[image-tag-reference] PASS: original container image ID still maps to the pinned nginx digest: found nginx@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+
+=== Create a second container from the retagged alias ===
+$ docker container create --name ia-codyssey-tag-retagged-20260812t080541z-3613-18955-28948 --label io.github.vivleon.ia-codyssey.image-tag-reference-run=20260812t080541z-3613-18955-28948 --label io.github.vivleon.ia-codyssey.image-tag-reference-role=retagged-ubuntu ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable
+8b90dcd74078138e2f2c63b114a6c41f24bddbba710190724406edc241cfcadf
+$ docker container inspect --format Name=\{\{.Name\}\}\ ConfiguredImage=\{\{.Config.Image\}\}\ ImageID=\{\{.Image\}\}\ RunLabel=\{\{index\ .Config.Labels\ \"io.github.vivleon.ia-codyssey.image-tag-reference-run\"\}\}\ Role=\{\{index\ .Config.Labels\ \"io.github.vivleon.ia-codyssey.image-tag-reference-role\"\}\} ia-codyssey-tag-retagged-20260812t080541z-3613-18955-28948
+Name=/ia-codyssey-tag-retagged-20260812t080541z-3613-18955-28948 ConfiguredImage=ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable ImageID=sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb RunLabel=20260812t080541z-3613-18955-28948 Role=retagged-ubuntu
+[image-tag-reference] PASS: retagged container carries this run ownership label: found RunLabel=20260812t080541z-3613-18955-28948
+$ docker container inspect --format \{\{.Image\}\} ia-codyssey-tag-retagged-20260812t080541z-3613-18955-28948
+sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+[image-tag-reference] PASS: new container records the Ubuntu image ID behind the retagged alias: sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+[image-tag-reference] PASS: containers created before and after retagging record different image IDs: sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb != sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+
+=== Demonstration result ===
+[image-tag-reference] same mutable name: ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable
+[image-tag-reference] alias before retag: sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+[image-tag-reference] alias after retag:  sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+[image-tag-reference] original container remains: sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752 (nginx@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752)
+[image-tag-reference] retagged container records: sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb (ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb)
+[image-tag-reference] PASS: a tag changed targets; the immutable digest/ID and existing container did not
+
+=== Cleanup and leftover audit ===
+[image-tag-reference] cleanup starting for run 20260812t080541z-3613-18955-28948
+$ docker image inspect --format \{\{.Id\}\} ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable
+sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+$ docker image rm ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable
+Untagged: ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable
+[image-tag-reference] cleanup confirmed unique alias absent: ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable
+$ docker container rm --force ia-codyssey-tag-retagged-20260812t080541z-3613-18955-28948
+ia-codyssey-tag-retagged-20260812t080541z-3613-18955-28948
+$ docker container rm --force ia-codyssey-tag-original-20260812t080541z-3613-18955-28948
+ia-codyssey-tag-original-20260812t080541z-3613-18955-28948
+[image-tag-reference] cleanup confirmed container absent: ia-codyssey-tag-original-20260812t080541z-3613-18955-28948
+[image-tag-reference] cleanup confirmed container absent: ia-codyssey-tag-retagged-20260812t080541z-3613-18955-28948
+[image-tag-reference] cleanup confirmed image alias absent: ia-codyssey-image-tag-reference-20260812t080541z-3613-18955-28948:mutable
+$ docker container ls --all --quiet --filter label=io.github.vivleon.ia-codyssey.image-tag-reference-run=20260812t080541z-3613-18955-28948
+[no output]
+[image-tag-reference] cleanup confirmed no run-labeled containers remain
+$ docker image inspect --format \{\{.Id\}\} nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+[image-tag-reference] cleanup confirmed pinned nginx image unchanged: sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+$ docker image inspect --format \{\{.Id\}\} ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+[image-tag-reference] cleanup confirmed pinned ubuntu image unchanged: sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb
+[image-tag-reference] main status=0 cleanup status=0 final exit=0
+[image-tag-reference] PASS: all tag-mutation assertions and cleanup checks succeeded

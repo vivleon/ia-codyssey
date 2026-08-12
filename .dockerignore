@@ -1,0 +1,5 @@
+# The image only needs the Dockerfile and static application assets.
+**
+!Dockerfile
+!app/
+!app/**

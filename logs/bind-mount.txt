@@ -1,13 +1,29 @@
-$ docker run -d --name ia-codyssey-bind -p 8082:80 -v "$(pwd)/bind-app:/usr/share/nginx/html:ro" nginx:alpine
-CONTAINER ID   IMAGE          COMMAND                  CREATED         STATUS         PORTS                                     NAMES
-22f8e221cde5   nginx:alpine   "/docker-entrypoint.…"   4 seconds ago   Up 4 seconds   0.0.0.0:8082->80/tcp, [::]:8082->80/tcp   ia-codyssey-bind
+# Re-verified on 2026-08-12 with an isolated container and loopback-only port.
 
-$ curl http://localhost:8082
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
+$ docker run -d --name ia-codyssey-bind-evidence-20260812 -p 127.0.0.1:18082:80 -v "$(pwd)/bind-app:/usr/share/nginx/html:ro" nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+66c40cb57877bfa2bdd37418ab141b2a70a4dd9a81103b0f968e6098714996aa
 
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
-100   210  100   210    0     0  72214      0 --:--:-- --:--:-- --:--:--  102k
+$ docker ps --filter name=ia-codyssey-bind-evidence-20260812
+CONTAINER ID   IMAGE          COMMAND                  CREATED        STATUS                  PORTS                     NAMES
+66c40cb57877   nginx:alpine   "/docker-entrypoint.…"   1 second ago   Up Less than a second   127.0.0.1:18082->80/tcp   ia-codyssey-bind-evidence-20260812
+
+$ docker inspect --format '{{range .Mounts}}{{.Type}} {{.Source}} -> {{.Destination}}{{end}}' ia-codyssey-bind-evidence-20260812 | sed -E 's#/Users/[^/]+/#/Users/[USER]/#'
+bind /Users/[USER]/Documents/ia-codyssey/bind-app -> /usr/share/nginx/html
+
+$ docker inspect --format 'ID={{.Id}} StartedAt={{.State.StartedAt}}' ia-codyssey-bind-evidence-20260812
+ID=66c40cb57877bfa2bdd37418ab141b2a70a4dd9a81103b0f968e6098714996aa StartedAt=2026-08-12T07:27:28.615723796Z
+
+$ curl --silent --show-error --include --max-time 10 http://127.0.0.1:18082/
+HTTP/1.1 200 OK
+Server: nginx/1.31.3
+Date: Wed, 12 Aug 2026 07:27:29 GMT
+Content-Type: text/html
+Content-Length: 227
+Last-Modified: Wed, 12 Aug 2026 07:27:21 GMT
+Connection: keep-alive
+ETag: "6a7c2059-e3"
+Accept-Ranges: bytes
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -16,11 +32,24 @@ $ curl http://localhost:8082
 </head>
 <body>
   <h1>Bind Mount Test - BEFORE</h1>
-  <p>This file is mounted from the host.</p>
+  <p>This content comes directly from the host directory.</p>
 </body>
 </html>
 
-$ cat bind-app/index.html
+# Host action: bind-app/index.html was edited from BEFORE to AFTER.
+# No docker stop, restart, or start command was run between the two requests.
+
+$ curl --silent --show-error --include --max-time 10 'http://127.0.0.1:18082/?after=20260812'
+HTTP/1.1 200 OK
+Server: nginx/1.31.3
+Date: Wed, 12 Aug 2026 07:27:40 GMT
+Content-Type: text/html
+Content-Length: 238
+Last-Modified: Wed, 12 Aug 2026 07:27:32 GMT
+Connection: keep-alive
+ETag: "6a7c2064-ee"
+Accept-Ranges: bytes
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -33,23 +62,8 @@ $ cat bind-app/index.html
 </body>
 </html>
 
-$ curl http://localhost:8082
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
+$ docker inspect --format 'ID={{.Id}} StartedAt={{.State.StartedAt}}' ia-codyssey-bind-evidence-20260812
+ID=66c40cb57877bfa2bdd37418ab141b2a70a4dd9a81103b0f968e6098714996aa StartedAt=2026-08-12T07:27:28.615723796Z
 
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
-100   238  100   238    0     0  59203      0 --:--:-- --:--:-- --:--:-- 59500
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>Bind Mount Test</title>
-</head>
-<body>
-  <h1>Bind Mount Test - AFTER</h1>
-  <p>The host file change was reflected without rebuilding the image.</p>
-</body>
-</html>
-
-$ docker inspect ia-codyssey-bind mount information
-Type=bind Source=/Users/hyeonjunna/codyssey/ia-codyssey/bind-app Destination=/usr/share/nginx/html
+$ docker rm -f ia-codyssey-bind-evidence-20260812
+ia-codyssey-bind-evidence-20260812

@@ -1,0 +1,84 @@
+=== Safe Docker port-conflict diagnostic ===
+UTC start: 2026-08-12T07:57:30Z
+run id: 1786521450-89877-29227
+owner container: ia-port-owner-1786521450-89877-29227
+retry container: ia-port-retry-1786521450-89877-29227
+run-owned image tag: ia-port-conflict-demo:1786521450-89877-29227
+pinned base image: nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+
+=== Docker engine check ===
+$ docker version --format Client=\{\{.Client.Version\}\}\ Server=\{\{.Server.Version\}\}
+Client=29.3.1 Server=29.3.1
+$ docker info --format Engine=\{\{.ServerVersion\}\}\ OS=\{\{.OperatingSystem\}\}
+Engine=29.3.1 OS=Docker Desktop
+[setup] base image already local: nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+$ docker image tag nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752 ia-port-conflict-demo:1786521450-89877-29227
+[setup] tagged shared base as run-owned alias: ia-port-conflict-demo:1786521450-89877-29227 -> sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+
+=== Preflight: primary loopback port ===
+selected host port: 61722
+AVAILABLE: 127.0.0.1:61722 accepted a test bind
+
+=== Start the port owner ===
+$ docker run -d --name ia-port-owner-1786521450-89877-29227 --label io.codyssey.port-conflict.run=1786521450-89877-29227 -p 127.0.0.1:61722:80 ia-port-conflict-demo:1786521450-89877-29227
+68793dbdac0b16568d2eb20a6be6e7fc21495823234be6f2e5d3ddaf2e2eec7a
+$ docker ps --filter name=\^/ia-port-owner-1786521450-89877-29227\$ --format table\ \{\{.Names\}\}\\t\{\{.Status\}\}\\t\{\{.Ports\}\}
+NAMES                                  STATUS                  PORTS
+ia-port-owner-1786521450-89877-29227   Up Less than a second   127.0.0.1:61722->80/tcp
+$ docker port ia-port-owner-1786521450-89877-29227 80/tcp
+127.0.0.1:61722
+
+=== Identify the listener ===
+$ lsof -nP -iTCP:61722 -sTCP:LISTEN
+COMMAND    PID       USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+com.docke 1796 [USER]  199u  IPv4 0x7b5f0692309912de      0t0  TCP 127.0.0.1:61722 (LISTEN)
+[inspect] lsof exit code: 0
+$ docker ps --filter publish=61722 --format table\ \{\{.Names\}\}\\t\{\{.Image\}\}\\t\{\{.Ports\}\}
+NAMES                                  IMAGE                                          PORTS
+ia-port-owner-1786521450-89877-29227   ia-port-conflict-demo:1786521450-89877-29227   127.0.0.1:61722->80/tcp
+$ docker port ia-port-owner-1786521450-89877-29227
+80/tcp -> 127.0.0.1:61722
+
+=== Reproduce the collision on the same port ===
+$ docker run -d --name ia-port-retry-1786521450-89877-29227 --label io.codyssey.port-conflict.run=1786521450-89877-29227 -p 127.0.0.1:61722:80 ia-port-conflict-demo:1786521450-89877-29227
+fa4b0e7025af7d26dfdd8a418163531988e3d916b00820fc04ed32031054da63
+docker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint ia-port-retry-1786521450-89877-29227 (637fdb220f6825165c14b48d3b4c4453e76242cb356dbcde09dde77ec8557973): Bind for 127.0.0.1:61722 failed: port is already allocated
+
+Run 'docker run --help' for more information
+[expected failure] docker run exit code: 125
+$ docker ps -a --filter name=\^/ia-port-retry-1786521450-89877-29227\$ --format table\ \{\{.Names\}\}\\t\{\{.Status\}\}\\t\{\{.Ports\}\}
+NAMES                                  STATUS    PORTS
+ia-port-retry-1786521450-89877-29227   Created
+
+=== Resolve by changing the retry port (owner stays running) ===
+original owner running before retry: true
+$ docker rm ia-port-retry-1786521450-89877-29227
+ia-port-retry-1786521450-89877-29227
+selected alternate host port: 61725 (primary remains 61722)
+AVAILABLE: 127.0.0.1:61725 accepted a test bind
+$ docker run -d --name ia-port-retry-1786521450-89877-29227 --label io.codyssey.port-conflict.run=1786521450-89877-29227 -p 127.0.0.1:61725:80 ia-port-conflict-demo:1786521450-89877-29227
+6ebb9b828bc02b113b79c94e54ce19f841930a1c641398a1ce08e1a2a496144a
+$ docker ps --filter label=io.codyssey.port-conflict.run=1786521450-89877-29227 --format table\ \{\{.Names\}\}\\t\{\{.Status\}\}\\t\{\{.Ports\}\}
+NAMES                                  STATUS                  PORTS
+ia-port-retry-1786521450-89877-29227   Up Less than a second   127.0.0.1:61725->80/tcp
+ia-port-owner-1786521450-89877-29227   Up 2 seconds            127.0.0.1:61722->80/tcp
+$ docker port ia-port-retry-1786521450-89877-29227 80/tcp
+127.0.0.1:61725
+
+=== HTTP verification while both containers run ===
+$ curl --silent --output /dev/null --write-out %\{http_code\} http://127.0.0.1:61722/
+HTTP status from http://127.0.0.1:61722/ = 200 (attempt 1)
+$ curl --silent --output /dev/null --write-out %\{http_code\} http://127.0.0.1:61725/
+HTTP status from http://127.0.0.1:61725/ = 200 (attempt 1)
+
+RESULT: PASS - collision reproduced; alternate loopback port returned HTTP 200.
+The original owner was not stopped to resolve the conflict.
+
+=== Cleanup (owned resources only) ===
+$ docker rm -f ia-port-retry-1786521450-89877-29227
+ia-port-retry-1786521450-89877-29227
+$ docker rm -f ia-port-owner-1786521450-89877-29227
+ia-port-owner-1786521450-89877-29227
+$ docker image rm ia-port-conflict-demo:1786521450-89877-29227
+Untagged: ia-port-conflict-demo:1786521450-89877-29227
+[cleanup] main status=0 cleanup status=0 final exit=0

@@ -1,22 +1,37 @@
-$ docker volume create ia-codyssey-data
-ia-codyssey-data
+# Re-verified on 2026-08-12 with a new, empty evidence volume.
 
-$ docker run -d --name ia-volume-test-1 -v ia-codyssey-data:/data ubuntu sleep infinity
-49bb7abab1321cb6f9be9dd9c99c94a6b6ea89a9445b19c7cdff96cbdbe10966
+$ docker ps -a --filter name=ia-volume-evidence-writer-20260812 --filter name=ia-volume-evidence-reader-20260812 --format '{{.Names}}'
 
-$ docker exec ia-volume-test-1 write data
+$ docker volume ls --filter name=ia-codyssey-data-evidence-20260812 --format '{{.Name}}'
 
-$ docker exec ia-volume-test-1 cat /data/result.txt
-Persistent data created by container 1
+$ docker volume create ia-codyssey-data-evidence-20260812
+ia-codyssey-data-evidence-20260812
 
-$ docker rm -f ia-volume-test-1
-ia-volume-test-1
+$ docker run -d --name ia-volume-evidence-writer-20260812 -v ia-codyssey-data-evidence-20260812:/data ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb sleep infinity
+9ea20e62762ec6d4017c0d710e1a985ee5cddc37cc0902a03db23fbe3cb2f664
 
-$ docker run -d --name ia-volume-test-2 -v ia-codyssey-data:/data ubuntu sleep infinity
-03f0ceefde083fa8ef73f0139a8bb1f7ba3a18c75c83773e5680ff176b45b56c
+$ docker exec ia-volume-evidence-writer-20260812 sh -c 'echo "Persistent data created by writer container" > /data/result.txt'
 
-$ docker exec ia-volume-test-2 cat /data/result.txt
-Persistent data created by container 1
+$ docker exec ia-volume-evidence-writer-20260812 cat /data/result.txt
+Persistent data created by writer container
 
-$ docker inspect ia-volume-test-2 mount information
-Type=volume Name=ia-codyssey-data Destination=/data
+$ docker inspect --format '{{range .Mounts}}{{.Type}} Name={{.Name}} {{.Source}} -> {{.Destination}}{{end}}' ia-volume-evidence-writer-20260812
+volume Name=ia-codyssey-data-evidence-20260812 /var/lib/docker/volumes/ia-codyssey-data-evidence-20260812/_data -> /data
+
+$ docker rm -f ia-volume-evidence-writer-20260812
+ia-volume-evidence-writer-20260812
+
+$ docker run -d --name ia-volume-evidence-reader-20260812 -v ia-codyssey-data-evidence-20260812:/data:ro ubuntu@sha256:3131b4cc82a783df6c9df078f86e01819a13594b865c2cad47bd1bca2b7063bb sleep infinity
+df5b65a96340816006a2aa27eb950537c765204ae323ad1c169b506d988d0fdc
+
+$ docker exec ia-volume-evidence-reader-20260812 cat /data/result.txt
+Persistent data created by writer container
+
+$ docker inspect --format '{{range .Mounts}}{{.Type}} Name={{.Name}} {{.Source}} -> {{.Destination}} RW={{.RW}}{{end}}' ia-volume-evidence-reader-20260812
+volume Name=ia-codyssey-data-evidence-20260812 /var/lib/docker/volumes/ia-codyssey-data-evidence-20260812/_data -> /data RW=false
+
+$ docker rm -f ia-volume-evidence-reader-20260812
+ia-volume-evidence-reader-20260812
+
+$ docker volume rm ia-codyssey-data-evidence-20260812
+ia-codyssey-data-evidence-20260812
