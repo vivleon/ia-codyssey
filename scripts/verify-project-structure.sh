@@ -108,11 +108,20 @@ check_file() {
   fi
 }
 
-for required_directory in app bind-app logs screenshots scripts; do
+for required_directory in app bind-app compose logs screenshots scripts; do
   check_directory "${required_directory}"
 done
 
-for required_file in Dockerfile README.md app/index.html bind-app/index.html; do
+for required_file in \
+  Dockerfile \
+  Dockerfile.compose \
+  README.md \
+  app/index.html \
+  bind-app/index.html \
+  compose/default.conf.template \
+  compose.single.yml \
+  docker-compose.yml \
+  scripts/verify-compose.sh; do
   check_file "${required_file}"
 done
 

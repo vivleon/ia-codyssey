@@ -1,0 +1,40 @@
+name: ia-codyssey-compose-multi
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.compose
+    image: ia-codyssey-compose-web:1.0
+    environment:
+      APP_MODE: ${APP_MODE:-multi}
+      SERVER_PORT: ${SERVER_PORT:-8080}
+    ports:
+      - "127.0.0.1:${COMPOSE_HOST_PORT:-8091}:${SERVER_PORT:-8080}"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:$${SERVER_PORT}/ >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 2s
+      start_period: 3s
+      retries: 10
+    restart: unless-stopped
+
+  probe:
+    image: ia-codyssey-compose-web:1.0
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "probe: resolving service name web"
+        while true; do
+          wget -qO- "http://web:$${SERVER_PORT}/" >/dev/null
+          echo "probe: web:$${SERVER_PORT} reachable"
+          sleep 5
+        done
+    environment:
+      SERVER_PORT: ${SERVER_PORT:-8080}
+    depends_on:
+      web:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    restart: unless-stopped

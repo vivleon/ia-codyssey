@@ -111,6 +111,11 @@ Docker 클라이언트는 macOS에서 실행되며, 실제 컨테이너는 Docke
 - [x] 터미널 작업별 UTC 시작·종료·종료 코드 기록
 - [x] 볼륨 복원 후 mode·UID·GID 일치 검증
 - [x] 프로젝트 핵심 구조 및 README 로컬 링크 자동 검증
+- [x] Compose 단일 서비스 실행
+- [x] Compose 웹·probe 멀티 서비스 실행 및 서비스 이름 통신
+- [x] Compose `up`, `ps`, `logs`, `down` 운영 루틴 검증
+- [x] 환경 변수로 NGINX 내부 포트·애플리케이션 모드 변경
+- [ ] GitHub SSH 인증 키 등록 및 SSH push 검증
 
 ---
 
@@ -122,9 +127,12 @@ ia-codyssey/
 │   └── index.html
 ├── bind-app/
 │   └── index.html
+├── compose/
+│   └── default.conf.template
 ├── logs/
 │   ├── bind-mount.txt
 │   ├── automated-verification.txt
+│   ├── compose-verification.txt
 │   ├── docker-cleanup-summary.txt
 │   ├── docker-operations.txt
 │   ├── docker-verification.txt
@@ -160,6 +168,7 @@ ia-codyssey/
 │   ├── port-mapping-8081.png
 │   └── vscode-github-clean.png
 ├── scripts/
+│   ├── verify-compose.sh
 │   ├── verify-project-structure.sh
 │   ├── verify-image-tag-reference.sh
 │   ├── verify-port-conflict.sh
@@ -170,6 +179,9 @@ ia-codyssey/
 ├── .dockerignore
 ├── .gitignore
 ├── Dockerfile
+├── Dockerfile.compose
+├── compose.single.yml
+├── docker-compose.yml
 └── README.md
 ```
 
@@ -1306,6 +1318,7 @@ Git은 로컬 버전 관리 도구이며, GitHub는 Git 저장소의 원격 보�
 | 바인드 마운트 변경 전 | [bind-mount-before.png](screenshots/bind-mount-before.png) |
 | 바인드 마운트 변경 후 | [bind-mount-after.png](screenshots/bind-mount-after.png) |
 | VSCode `main`·clean Source Control | [vscode-github-clean.png](screenshots/vscode-github-clean.png) |
+| Compose 단일·멀티 서비스·환경 변수·운영 명령 | [compose-verification.txt](logs/compose-verification.txt) |
 
 ---
 
@@ -1437,3 +1450,79 @@ docker run -p 127.0.0.1:8081:80 ia-codyssey-web:1.0
 - 검증하지 않은 범위는? 저장된 실측 결과는 Docker Desktop 환경입니다. OrbStack 실행, 특정 GitHub OAuth 방식, 실제 외부 암호화 백업 운영까지 검증했다고 주장하지 않습니다.
 
 
+## 23. 환경별 추가 확인
+
+서울캠퍼스 지침에서 OrbStack이 필수라면 OrbStack 설치 후 모든 Docker 증거를 같은 런타임으로 재생성해야 합니다. 현재 저장된 실측 결과는 Docker Desktop 환경이며, 런타임을 바꾸지 않은 상태에서 OrbStack 결과라고 주장하지 않습니다.
+
+---
+
+## 24. 보너스 과제
+
+### 24.1 Docker Compose 기초: 단일 서비스
+
+[compose.single.yml](compose.single.yml)은 `web` 서비스 하나의 이미지 빌드, 환경 변수, 포트, 재시작 정책을 선언합니다. 긴 `docker run` 옵션을 파일로 옮기면 실행 설정을 Git으로 검토·공유할 수 있고, 다른 학습자도 같은 명령으로 재현할 수 있습니다.
+
+```bash
+docker compose -f compose.single.yml config
+docker compose -f compose.single.yml up -d --build
+docker compose -f compose.single.yml ps
+curl --include http://127.0.0.1:8090/
+docker compose -f compose.single.yml logs --tail=20 web
+docker compose -f compose.single.yml down
+```
+
+기본 포트 연결은 호스트 `127.0.0.1:8090`에서 컨테이너 `8080`입니다. 실제 검증에서는 기존 서비스와의 충돌을 피하려고 실행 전용 host port `18090`을 주입했고 HTTP `200`과 `X-App-Mode: single-verified`를 확인했습니다.
+
+### 24.2 Docker Compose 멀티 컨테이너
+
+[docker-compose.yml](docker-compose.yml)은 다음 두 서비스를 함께 실행합니다.
+
+- `web`: NGINX 웹 서버이며 healthcheck가 성공해야 `healthy` 상태가 됩니다.
+- `probe`: `web`이 healthy가 된 뒤 `http://web:${SERVER_PORT}/`로 주기적으로 요청하는 보조 서비스입니다.
+
+Compose는 프로젝트별 기본 네트워크와 DNS를 자동 생성합니다. 따라서 `probe`는 IP 주소를 알 필요 없이 서비스 이름 `web`으로 웹 서버를 찾습니다. 실제 로그의 `probe: web:8181 reachable`과 `docker compose exec ... http://web:8181/` 응답으로 서비스 디스커버리를 확인했습니다.
+
+```bash
+docker compose up -d --build
+docker compose ps
+docker compose exec -T probe wget -qO- http://web:8080/
+docker compose logs --tail=30
+docker compose down
+```
+
+### 24.3 Compose 운영 명령 루틴
+
+| 명령 | 운영 관점의 확인 내용 |
+|---|---|
+| `docker compose up -d --build` | 이미지를 만들고 서비스를 백그라운드에서 시작 |
+| `docker compose ps` | 서비스별 실행·health·포트 상태 확인 |
+| `docker compose logs` | 시작 오류, 요청 기록, 서비스 간 통신 확인 |
+| `docker compose down` | 해당 Compose 프로젝트의 컨테이너와 기본 네트워크 정리 |
+
+상태 확인 루틴은 **시작 → 상태 → HTTP/서비스 간 통신 → 로그 → 종료** 순서로 수행했습니다. `down`은 Compose가 만든 자원만 대상으로 하며 다른 프로젝트를 전역 정리하지 않습니다.
+
+### 24.4 환경 변수로 설정과 코드 분리
+
+[Dockerfile.compose](Dockerfile.compose)는 `APP_MODE`와 `SERVER_PORT` 기본값을 제공하고, [NGINX 템플릿](compose/default.conf.template)은 컨테이너 시작 시 이 값을 실제 설정으로 변환합니다. 애플리케이션 이미지를 다시 수정하지 않고 환경마다 포트와 모드를 바꿀 수 있습니다.
+
+```bash
+APP_MODE=bonus-verified \
+SERVER_PORT=8181 \
+COMPOSE_HOST_PORT=18091 \
+docker compose up -d --build
+
+curl --include http://127.0.0.1:18091/
+```
+
+검증 결과는 `127.0.0.1:18091 -> container:8181`이었고, HTTP 응답 헤더 `X-App-Mode: bonus-verified`로 모드 주입도 확인했습니다. 비밀번호나 토큰은 Compose 파일에 직접 쓰지 않으며, 실제 운영 비밀값은 Git에 커밋하지 않는 별도 secret 관리 수단을 사용해야 합니다.
+
+### 24.5 Compose 전체 자동 검증
+
+다음 스크립트는 단일 서비스와 멀티 서비스를 순서대로 실행하고, `up`, `ps`, `logs`, `down`, HTTP `200`, 환경 변수, `probe → web` 통신을 검사합니다.
+
+```bash
+./scripts/verify-compose.sh
+```
+
+- [Compose 검증 스크립트](scripts/verify-compose.sh)
+- [Compose 전체 원본 로그](logs/compose-verification.txt)

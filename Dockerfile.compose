@@ -1,0 +1,15 @@
+FROM nginx:alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+
+LABEL org.opencontainers.image.title="ia-codyssey-compose-web"
+LABEL org.opencontainers.image.description="Environment-driven NGINX service for the Docker Compose bonus"
+
+ENV APP_MODE=compose \
+    SERVER_PORT=8080
+
+COPY app/ /usr/share/nginx/html/
+COPY compose/default.conf.template /etc/nginx/templates/default.conf.template
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=5s --timeout=2s --start-period=3s --retries=10 \
+  CMD wget -qO- "http://127.0.0.1:${SERVER_PORT}/" >/dev/null || exit 1
