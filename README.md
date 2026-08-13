@@ -115,7 +115,7 @@ Docker 클라이언트는 macOS에서 실행되며, 실제 컨테이너는 Docke
 - [x] Compose 웹·probe 멀티 서비스 실행 및 서비스 이름 통신
 - [x] Compose `up`, `ps`, `logs`, `down` 운영 루틴 검증
 - [x] 환경 변수로 NGINX 내부 포트·애플리케이션 모드 변경
-- [ ] GitHub SSH 인증 키 등록 및 SSH push 검증
+- [x] GitHub SSH 인증 키 등록 및 SSH push 검증
 
 ---
 
@@ -139,6 +139,7 @@ ia-codyssey/
 │   ├── environment.txt
 │   ├── git-push.txt
 │   ├── git-verification.txt
+│   ├── github-ssh-verification.txt
 │   ├── hello-world.txt
 │   ├── image-build-run.txt
 │   ├── image-tag-reference.txt
@@ -169,6 +170,7 @@ ia-codyssey/
 │   └── vscode-github-clean.png
 ├── scripts/
 │   ├── verify-compose.sh
+│   ├── verify-github-ssh.sh
 │   ├── verify-project-structure.sh
 │   ├── verify-image-tag-reference.sh
 │   ├── verify-port-conflict.sh
@@ -1311,6 +1313,7 @@ Git은 로컬 버전 관리 도구이며, GitHub는 Git 저장소의 원격 보�
 | 동일 이름 볼륨 재사용·stale data 위험 | [volume-name-reuse.txt](logs/volume-name-reuse.txt) |
 | Git 설정 | [git-verification.txt](logs/git-verification.txt) |
 | 실제 GitHub `main` 푸시·원격 커밋 일치 | [git-push.txt](logs/git-push.txt) |
+| GitHub SSH 키 지문·권한·인증·원격 조회·push 권한 | [github-ssh-verification.txt](logs/github-ssh-verification.txt) |
 | 컨테이너 내부 Docker CLI 오류·종료 코드 | [troubleshooting-container-docker.txt](logs/troubleshooting-container-docker.txt) |
 | 8080 주소창·접속 화면 | [port-mapping-8080-address-bar.png](screenshots/port-mapping-8080-address-bar.png) |
 | 8081 주소창·접속 화면 | [port-mapping-8081-address-bar.png](screenshots/port-mapping-8081-address-bar.png) |
@@ -1526,3 +1529,43 @@ curl --include http://127.0.0.1:18091/
 
 - [Compose 검증 스크립트](scripts/verify-compose.sh)
 - [Compose 전체 원본 로그](logs/compose-verification.txt)
+
+### 24.6 GitHub SSH 키 설정
+
+HTTPS는 계정 자격 증명 또는 credential helper를 통해 인증하고, SSH는 로컬 개인키와 GitHub에 등록한 공개키의 쌍으로 인증합니다. 이 실습에서는 기존 클라우드 키를 재사용하지 않고 GitHub 전용 Ed25519 키를 별도 생성했습니다.
+
+```bash
+ssh-keygen -t ed25519 \
+  -C "vivleon-github-codyssey" \
+  -f ~/.ssh/id_ed25519_github_codyssey
+```
+
+적용한 보안 습관은 다음과 같습니다.
+
+- 개인키는 로컬 `~/.ssh/`에만 두고 Git 저장소에 복사하지 않습니다.
+- 개인키 권한은 `600`, 공개키 권한은 `644`로 제한했습니다.
+- GitHub에는 공개키만 `IA Codyssey Mac - 2026-08-13`이라는 구분 가능한 이름으로 등록했습니다.
+- 다른 서비스의 키를 재사용하지 않고 GitHub 전용 키를 사용했습니다.
+- 첫 연결에서는 호스트 검증을 끄지 않고 GitHub 공식 Ed25519 호스트 지문 `SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU`와 대조한 뒤 `known_hosts`에 등록했습니다.
+- 분실하거나 사용하지 않는 기기의 키는 GitHub 설정에서 즉시 삭제해야 합니다.
+- 장기간 사용하는 개인키에는 passphrase를 설정하고 OS keychain/ssh-agent를 함께 사용하는 것이 더 안전합니다.
+
+원격 주소를 SSH 형식으로 변경했습니다.
+
+```bash
+git remote set-url origin git@github.com:vivleon/ia-codyssey.git
+git remote -v
+```
+
+다음 순서로 인증과 push 가능 여부를 확인했습니다.
+
+```bash
+ssh -T git@github.com
+git ls-remote origin refs/heads/main
+git push --dry-run origin main
+```
+
+`ssh -T`는 `Hi vivleon! You've successfully authenticated`를 반환했습니다. GitHub는 셸을 제공하지 않으므로 이 성공 응답에서도 종료 코드 `1`을 사용하는 것이 정상입니다. 이어서 SSH 원격의 `main` 해시 조회와 dry-run push가 성공했습니다. 이 문서 보완 커밋도 SSH 원격으로 실제 push해 쓰기 권한을 최종 확인합니다.
+
+- [GitHub SSH 자동 검증 스크립트](scripts/verify-github-ssh.sh)
+- [GitHub SSH 검증 원본 로그](logs/github-ssh-verification.txt)

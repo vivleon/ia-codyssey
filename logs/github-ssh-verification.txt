@@ -1,0 +1,18 @@
+[github-ssh] START UTC: 2026-08-13T03:53:13Z
+$ ssh-keygen -lf ~/.ssh/id_ed25519_github_codyssey.pub
+256 SHA256:FHb7b4d2Yv+FbMz032y0Or3ehJF26FiDgakUceq9KiQ vivleon-github-codyssey (ED25519)
+$ stat permissions for the dedicated private/public key
+private=600 public-key-file
+public=644
+$ ssh -T git@github.com
+Hi vivleon! You've successfully authenticated, but GitHub does not provide shell access.
+[github-ssh] PASS GitHub SSH authentication (GitHub success response uses exit 1)
+$ git remote -v
+origin	git@github.com:vivleon/ia-codyssey.git (fetch)
+origin	git@github.com:vivleon/ia-codyssey.git (push)
+$ git ls-remote origin refs/heads/main
+171091c16f432df68ccbfce92f1f9cc6fa75752d	refs/heads/main
+$ git push --dry-run origin main
+Everything up-to-date
+[github-ssh] PASS SSH remote read and push permission checks
+[github-ssh] END UTC: 2026-08-13T03:53:20Z

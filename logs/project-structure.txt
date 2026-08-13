@@ -1,4 +1,4 @@
-[project-structure] START UTC: 2026-08-13T03:50:18Z
+[project-structure] START UTC: 2026-08-13T03:53:46Z
 [project-structure] INFO validation is read-only except for its generated log
 [project-structure] INFO generated log excluded from validation: logs/project-structure.txt
 [project-structure] PASS directory: app/
@@ -16,6 +16,7 @@
 [project-structure] PASS file: compose.single.yml
 [project-structure] PASS file: docker-compose.yml
 [project-structure] PASS file: scripts/verify-compose.sh
+[project-structure] PASS file: scripts/verify-github-ssh.sh
 [project-structure] PASS README link: logs/environment.txt
 [project-structure] PASS README link: logs/docker-verification.txt
 [project-structure] PASS README link: logs/git-verification.txt
@@ -51,6 +52,7 @@
 [project-structure] PASS README link: logs/troubleshooting-container-docker.txt
 [project-structure] PASS README link: scripts/verify-port-conflict.sh
 [project-structure] PASS README link: logs/port-conflict.txt
+[project-structure] PASS README link: logs/github-ssh-verification.txt
 [project-structure] PASS README link: logs/compose-verification.txt
 [project-structure] PASS README link: Dockerfile
 [project-structure] PASS README link: scripts/verify.sh
@@ -59,6 +61,7 @@
 [project-structure] PASS README link: Dockerfile.compose
 [project-structure] PASS README link: compose/default.conf.template
 [project-structure] PASS README link: scripts/verify-compose.sh
-[project-structure] SUMMARY required=15 local-link-occurrences=117 unique-local-targets=43 external-ignored=0 anchors-ignored=1 generated-log-links-skipped=4 failures=0
+[project-structure] PASS README link: scripts/verify-github-ssh.sh
+[project-structure] SUMMARY required=16 local-link-occurrences=120 unique-local-targets=45 external-ignored=0 anchors-ignored=1 generated-log-links-skipped=4 failures=0
 [project-structure] RESULT PASS
-[project-structure] END UTC: 2026-08-13T03:50:19Z
+[project-structure] END UTC: 2026-08-13T03:53:48Z

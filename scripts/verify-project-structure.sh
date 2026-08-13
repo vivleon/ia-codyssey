@@ -121,7 +121,8 @@ for required_file in \
   compose/default.conf.template \
   compose.single.yml \
   docker-compose.yml \
-  scripts/verify-compose.sh; do
+  scripts/verify-compose.sh \
+  scripts/verify-github-ssh.sh; do
   check_file "${required_file}"
 done
 
