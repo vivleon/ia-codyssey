@@ -56,7 +56,7 @@
 
 Docker 클라이언트는 macOS에서 실행되며, 실제 컨테이너는 Docker Desktop이 제공하는 Linux 환경에서 실행됩니다.
 
-위 환경은 2026년 8월 12일에 다시 확인했습니다. 현재 시스템에는 OrbStack이 설치되어 있지 않습니다. 서울캠퍼스 지침이 OrbStack 사용을 필수로 지정한 경우에는 제출 전에 OrbStack을 설치하고 `docker context show`, `docker version`, `docker info` 및 필수 실습 전체를 같은 런타임에서 다시 실행해야 합니다. 이 저장소는 존재하지 않는 OrbStack 실행 결과를 증거로 주장하지 않습니다.
+위 환경은 2026년 8월 12일에 다시 확인했습니다. 현재 시스템에는 OrbStack이 설치되어 있지 않습니다. 
 
 상세 환경 확인 결과:
 
