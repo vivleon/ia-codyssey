@@ -1563,9 +1563,10 @@ git remote -v
 ssh -T git@github.com
 git ls-remote origin refs/heads/main
 git push --dry-run origin main
+./scripts/verify-github-ssh.sh --push
 ```
 
-`ssh -T`는 `Hi vivleon! You've successfully authenticated`를 반환했습니다. GitHub는 셸을 제공하지 않으므로 이 성공 응답에서도 종료 코드 `1`을 사용하는 것이 정상입니다. 이어서 SSH 원격의 `main` 해시 조회와 dry-run push가 성공했습니다. 이 문서 보완 커밋도 SSH 원격으로 실제 push해 쓰기 권한을 최종 확인합니다.
+`ssh -T`는 `Hi vivleon! You've successfully authenticated`를 반환했습니다. GitHub는 셸을 제공하지 않으므로 이 성공 응답에서도 종료 코드 `1`을 사용하는 것이 정상입니다. 이어서 SSH 원격의 `main` 해시 조회와 dry-run push를 확인하고, 문서 보완 커밋 `f0ff28b`를 SSH 원격으로 실제 push해 쓰기 권한을 최종 확인했습니다.
 
 - [GitHub SSH 자동 검증 스크립트](scripts/verify-github-ssh.sh)
 - [GitHub SSH 검증 원본 로그](logs/github-ssh-verification.txt)

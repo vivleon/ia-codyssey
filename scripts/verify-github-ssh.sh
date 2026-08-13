@@ -7,6 +7,7 @@ readonly PROJECT_ROOT="$(CDPATH='' cd -- "${SCRIPT_DIR}/.." && pwd)"
 readonly LOG_FILE="${PROJECT_ROOT}/logs/github-ssh-verification.txt"
 readonly KEY_FILE="${HOME}/.ssh/id_ed25519_github_codyssey"
 readonly PUBLIC_KEY_FILE="${KEY_FILE}.pub"
+readonly PUSH_MODE="${1:-}"
 
 log() {
   printf '%s\n' "$*" | tee -a "${LOG_FILE}"
@@ -52,6 +53,11 @@ log "[github-ssh] PASS GitHub SSH authentication (GitHub success response uses e
 run git remote -v
 run git ls-remote origin refs/heads/main
 run git push --dry-run origin main
+
+if [[ "${PUSH_MODE}" == "--push" ]]; then
+  run git push origin main
+  log "[github-ssh] PASS actual SSH push"
+fi
 
 log "[github-ssh] PASS SSH remote read and push permission checks"
 log "[github-ssh] END UTC: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
